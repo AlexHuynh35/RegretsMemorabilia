@@ -4927,7 +4927,9 @@ self.C3_GetObjectRefTable = function () {
 		C3.Plugins.Sprite.Acts.SetEffectEnabled,
 		C3.Plugins.Sprite.Cnds.CompareX,
 		C3.Plugins.Mouse.Cnds.IsButtonDown,
+		C3.Plugins.System.Cnds.EveryTick,
 		C3.Plugins.Sprite.Acts.AddInstanceVar,
+		C3.Plugins.System.Exps.dt,
 		C3.Plugins.Particles.Acts.SetRate,
 		C3.Plugins.System.Exps.min,
 		C3.Plugins.TiledBg.Acts.SetTowardPosition,
@@ -5533,7 +5535,10 @@ self.C3_ExpressionFuncs = [
 		() => 300,
 		() => 200,
 		() => "PlayerControls",
-		() => 0.016666666666666666,
+		p => {
+			const f0 = p._GetNode(0).GetBoundMethod();
+			return () => ((0.5 * 60) * f0());
+		},
 		p => {
 			const f0 = p._GetNode(0).GetBoundMethod();
 			const f1 = p._GetNode(1).GetBoundMethod();
@@ -5569,6 +5574,10 @@ self.C3_ExpressionFuncs = [
 			return () => (n0.ExpObject() + 20);
 		},
 		() => 5000,
+		p => {
+			const f0 = p._GetNode(0).GetBoundMethod();
+			return () => ((3.5 * 60) * f0());
+		},
 		() => -1,
 		() => "Jump",
 		() => "Fall",
@@ -5592,6 +5601,10 @@ self.C3_ExpressionFuncs = [
 			return () => ((v0.GetValue() - v1.GetValue()) / 2);
 		},
 		p => {
+			const f0 = p._GetNode(0).GetBoundMethod();
+			return () => (60 * f0());
+		},
+		p => {
 			const n0 = p._GetNode(0);
 			const n1 = p._GetNode(1);
 			return () => C3.lerp(n0.ExpObject(), n1.ExpObject(), 0.2);
@@ -5599,7 +5612,8 @@ self.C3_ExpressionFuncs = [
 		p => {
 			const f0 = p._GetNode(0).GetBoundMethod();
 			const n1 = p._GetNode(1);
-			return () => f0(120, (n1.ExpInstVar() + 0.5));
+			const f2 = p._GetNode(2).GetBoundMethod();
+			return () => f0(120, (n1.ExpInstVar() + ((0.5 * 60) * f2())));
 		},
 		p => {
 			const v0 = p._GetNode(0).GetVar();
