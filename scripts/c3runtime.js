@@ -4951,6 +4951,7 @@ self.C3_GetObjectRefTable = function () {
 		C3.Plugins.Particles.Acts.MoveToBottom,
 		C3.Plugins.Particles.Acts.SetAngleRandomiser,
 		C3.Plugins.Particles.Acts.SetInitSize,
+		C3.Behaviors.Platform.Acts.SetDefaultControls,
 		C3.Plugins.Text.Acts.SetSize,
 		C3.Plugins.Text.Acts.SetFontSize,
 		C3.Plugins.Text.Acts.SetFontColor,
