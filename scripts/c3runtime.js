@@ -5379,7 +5379,7 @@ self.C3_ExpressionFuncs = [
 		},
 		() => "DiaTwo",
 		() => "Dad: Why do you keep spending money on all this stuff we don’t need!?",
-		() => "Because I bought it for my family!",
+		() => "Mom: It's not just for us! I bought it for my siblings and their kids.",
 		() => "Dad: Really? Because there are still clothes in this house that you said were 'for your family.'",
 		() => "Mom: I will mail them eventually. You know they don’t make a lot of money. I just think its important to give back…",
 		() => "Dad: Listen…I know they’re important to you, but what about *this* family?",
@@ -5547,7 +5547,7 @@ self.C3_ExpressionFuncs = [
 		p => {
 			const f0 = p._GetNode(0).GetBoundMethod();
 			const n1 = p._GetNode(1);
-			return () => f0((n1.ExpInstVar() / 6), 20);
+			return () => f0(n1.ExpInstVar(), 20);
 		},
 		p => {
 			const n0 = p._GetNode(0);
@@ -5581,7 +5581,9 @@ self.C3_ExpressionFuncs = [
 		() => 2060,
 		() => 3690,
 		() => 2035,
-		() => 160,
+		() => 3500,
+		() => 40,
+		() => 60,
 		() => -717750023016447,
 		p => {
 			const v0 = p._GetNode(0).GetVar();
@@ -5620,12 +5622,10 @@ self.C3_ExpressionFuncs = [
 			const v0 = p._GetNode(0).GetVar();
 			return () => (v0.GetValue() * 0.4);
 		},
-		() => 40,
 		p => {
 			const v0 = p._GetNode(0).GetVar();
 			return () => (v0.GetValue() * 0.2);
 		},
-		() => 60,
 		() => 120,
 		() => 500,
 		p => {
