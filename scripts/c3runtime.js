@@ -4927,7 +4927,6 @@ self.C3_GetObjectRefTable = function () {
 		C3.Plugins.Sprite.Acts.SetEffectEnabled,
 		C3.Plugins.Sprite.Cnds.CompareX,
 		C3.Plugins.Mouse.Cnds.IsButtonDown,
-		C3.Plugins.System.Cnds.EveryTick,
 		C3.Plugins.Sprite.Acts.AddInstanceVar,
 		C3.Plugins.Particles.Acts.SetRate,
 		C3.Plugins.System.Exps.min,
@@ -5534,6 +5533,7 @@ self.C3_ExpressionFuncs = [
 		() => 300,
 		() => 200,
 		() => "PlayerControls",
+		() => 0.016666666666666666,
 		p => {
 			const f0 = p._GetNode(0).GetBoundMethod();
 			const f1 = p._GetNode(1).GetBoundMethod();
