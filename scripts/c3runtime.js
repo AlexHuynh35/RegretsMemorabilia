@@ -4411,15 +4411,132 @@ await imageInfo.LoadStaticTexture(runtime.GetRenderer(),{sampling:runtime.GetSam
 }
 
 {
-'use strict';{const C3=self.C3;C3.Plugins.CSV=class CSVPlugin extends C3.SDKPluginBase{constructor(opts){super(opts)}Release(){super.Release()}}}
-{const C3=self.C3;const C3X=self.C3X;C3.Plugins.CSV.Type=class CSVType extends C3.SDKTypeBase{constructor(objectClass){super(objectClass)}Release(){super.Release()}OnCreate(){}GetScriptInterfaceClass(){return self.ICSVObjectType}};let csvObjectType=null;function GetSdkInstance(){return csvObjectType.GetSingleGlobalInstance().GetSdkInstance()}const VALID_DATA_TYPES=["auto","string","number"];self.ICSVObjectType=class ICSVObjectType extends self.IObjectClass{constructor(objectType){super(objectType);
-csvObjectType=objectType}parseCsv(str,delimiter=",",dataTypeStr="auto"){C3X.RequireString(str);C3X.RequireString(delimiter);const dataType=VALID_DATA_TYPES.indexOf(dataTypeStr);if(dataType===-1)throw new Error("invalid data type");return GetSdkInstance()._ParseCSV(str,delimiter,dataType)}generateCsv(arr,delimiter=","){C3X.RequireArray(arr);C3X.RequireString(delimiter);return GetSdkInstance()._StringifyCSV(arr,delimiter)}}}
-{const C3=self.C3;C3.Plugins.CSV.Instance=class CSVInstance extends C3.SDKInstanceBase{constructor(inst,properties){super(inst);this._generatedCsv=""}Release(){super.Release()}_GetArraySdkInstance(arrayObjectClass){if(!arrayObjectClass)return null;const target=arrayObjectClass.GetFirstPicked(this._inst);if(!target)return null;return target.GetSdkInstance()}_ParseCSV(str,delimiter,dataType){return self["csv_parse_sync"]["parse"](str,{"delimiter":delimiter,"relax_column_count":true,"skip_empty_lines":true,
-"cast":(value,context)=>{if(dataType===0){if(context["quoting"])return value;const trimStr=value.trim();if(trimStr===String(Number(trimStr)))return Number(trimStr);else return value}else if(dataType===2)return Number(value.trim());else return value}})}_StringifyCSV(data,delimiter){return self["csv_stringify_sync"]["stringify"](data,{"delimiter":delimiter,"cast":{"string":value=>{if(String(Number(value))===value)return{"value":value,"quoted":true};else return{"value":value}}}})}}}
-{const C3=self.C3;C3.Plugins.CSV.Cnds={OnParseError(){return true}}}
-{const C3=self.C3;C3.Plugins.CSV.Acts={ParseCSV(str,delimiter,arrayObjectClass,dataType){const arrayInst=this._GetArraySdkInstance(arrayObjectClass);if(!arrayInst)return;try{const data=this._ParseCSV(str,delimiter,dataType);const maxWidth=data.reduce((a,c)=>Math.max(a,c.length),0);arrayInst.SetSize(maxWidth,data.length,1);for(let y=0,leny=data.length;y<leny;++y){const row=data[y];for(let x=0,lenx=row.length;x<lenx;++x)arrayInst.Set(x,y,0,row[x]);for(let x=row.length;x<maxWidth;x++)arrayInst.Set(x,
-y,0,dataType===1?"":0)}}catch(err){console.error("Error parsing CSV: ",err);this.Trigger(C3.Plugins.CSV.Cnds.OnParseError)}},GenerateCSV(arrayObjectClass,delimiter){this._generatedCsv="";const arrayInst=this._GetArraySdkInstance(arrayObjectClass);if(!arrayInst)return;const width=arrayInst.GetWidth();const height=arrayInst.GetHeight();const depth=arrayInst.GetDepth();if(depth===0)return;const data=[];for(let y=0;y<height;++y){const row=[];for(let x=0;x<width;++x)row.push(arrayInst.At(x,y,0));data.push(row)}this._generatedCsv=
-this._StringifyCSV(data,delimiter)}}}{const C3=self.C3;C3.Plugins.CSV.Exps={GeneratedCSV(){return this._generatedCsv},TabCharacter(){return"\t"}}};
+'use strict';{const C3=self.C3;C3.Plugins.Particles=class ParticlesPlugin extends C3.SDKPluginBase{constructor(opts){super(opts)}Release(){super.Release()}}}{const C3=self.C3;C3.Plugins.Particles.Type=class ParticlesType extends C3.SDKTypeBase{constructor(objectClass){super(objectClass)}Release(){super.Release()}OnCreate(){this.GetImageInfo().LoadAsset(this._runtime)}LoadTextures(renderer){return this.GetImageInfo().LoadStaticTexture(renderer,{sampling:this._runtime.GetSampling()})}ReleaseTextures(){this.GetImageInfo().ReleaseTexture()}}}
+{const C3=self.C3;const C3X=self.C3X;const RATE=0;const SPRAY_CONE=1;const TYPE=2;const SPAWNOBJECTCLASS=3;const INITIALLY_VISIBLE=4;const SPEED=5;const SIZE=6;const OPACITY=7;const GROW_RATE=8;const X_RANDOMISER=9;const Y_RANDOMISER=10;const INITIAL_SPEED_RANDOMISER=11;const SIZE_RANDOMISER=12;const GROW_RATE_RANDOMISER=13;const ACCELERATION=14;const GRAVITY=15;const ANGLE_RANDOMISER=16;const LIFE_SPEED_RANDOMISER=17;const OPACITY_RANDOMISER=18;const DESTROY_MODE=19;const TIMEOUT=20;const CONTINUOUS=
+0;const ONE_SHOT=1;const tempRect=C3.New(C3.Rect);C3.Plugins.Particles.Instance=class ParticlesInstance extends C3.SDKWorldInstanceBase{constructor(inst,properties){super(inst);this._isFirstTick=true;const pe=C3.New(self.ParticleEngine);this._particleEngine=pe;pe.ononeshotfinish=()=>this._OnOneShotFinish();this._spawnObjectClass=null;this._particleUpdateCallback=(inst,dx,dy,dSize,dAngle,dOpacity)=>this._OnParticleUpdate(inst,dx,dy,dSize,dAngle,dOpacity);this._particleDestroyCallback=inst=>this._OnParticleDestroy(inst);
+this._hasAnyDefaultParticle=true;let isInitiallyVisible=true;if(properties){pe.SetRate(properties[RATE]);pe.SetSprayCone(C3.toRadians(properties[SPRAY_CONE]));pe.SetSprayType(properties[TYPE]?"one-shot":"continuous-spray");this._SetParticleObjectClass(this._runtime.GetObjectClassBySID(properties[SPAWNOBJECTCLASS]));isInitiallyVisible=properties[INITIALLY_VISIBLE];pe.SetInitSpeed(properties[SPEED]);pe.SetInitSize(properties[SIZE]);pe.SetInitOpacity(properties[OPACITY]/100);pe.SetGrowRate(properties[GROW_RATE]);
+pe.SetInitXRandom(properties[X_RANDOMISER]);pe.SetInitYRandom(properties[Y_RANDOMISER]);pe.SetInitSpeedRandom(properties[INITIAL_SPEED_RANDOMISER]);pe.SetInitSizeRandom(properties[SIZE_RANDOMISER]);pe.SetGrowRandom(properties[GROW_RATE_RANDOMISER]);pe.SetAcceleration(properties[ACCELERATION]);pe.SetGravity(properties[GRAVITY]);pe.SetLifeAngleRandom(properties[ANGLE_RANDOMISER]);pe.SetLifeSpeedRandom(properties[LIFE_SPEED_RANDOMISER]);pe.SetLifeOpacityRandom(properties[OPACITY_RANDOMISER]);pe.SetDestroyModeIndex(properties[DESTROY_MODE]);
+pe.SetTimeout(properties[TIMEOUT])}this._UpdateEngineParameters();if(this._spawnObjectClass)this._hasAnyDefaultParticle=false;if(pe.GetSprayType()==="one-shot")pe.CreateOneShotSpray();else pe.SetSpraying(true);const wi=this.GetWorldInfo();wi.SetVisible(isInitiallyVisible);wi.SetBboxChangeEventEnabled(true);this._inst.Dispatcher().addEventListener("bboxchange",()=>{wi.OverwriteBoundingBox(this._particleEngine.GetBoundingBox())});if(this.GetRuntime().GetRenderer().IsWebGPU())wi.SetUsePointsShaderProgram();
+this._afterLoad=e=>this._OnAfterLoad(e);this.GetRuntime().Dispatcher().addEventListener("afterload",this._afterLoad);this._StartTicking()}Release(){this.GetRuntime().Dispatcher().removeEventListener("afterload",this._afterLoad);this._afterLoad=null;this._particleEngine.Release();this._particleEngine=null;this._particleUpdateCallback=null;this._particleDestroyCallback=null;super.Release()}GetParticleEngine(){return this._particleEngine}_SetRate(r){this._particleEngine.SetRate(r);if(this._particleEngine.GetSprayType()===
+"one-shot"&&this._isFirstTick)this._particleEngine.SetParticleCount(r)}_SetParticleObjectClass(objectClass){if(objectClass===this.GetObjectClass())objectClass=null;if(objectClass===this._spawnObjectClass)return;this._spawnObjectClass=objectClass;this._particleEngine.onparticlecreate=objectClass?p=>this._OnParticleCreate(p):null;if(!this._spawnObjectClass)this._hasAnyDefaultParticle=true}_UpdateEngineParameters(){const pe=this._particleEngine;const wi=this.GetWorldInfo();pe.SetMasterOpacity(wi.GetOpacity());
+pe.SetPixelRounding(this._runtime.IsPixelRoundingEnabled());pe.SetSpawnX(wi.GetX());pe.SetSpawnY(wi.GetY());pe.SetSpawnAngle(wi.GetAngle());pe.SetInitSizeScale(Math.abs(wi.GetSceneGraphScale()))}_OnOneShotFinish(){this._runtime.DestroyInstance(this._inst)}Draw(renderer){if(!this._hasAnyDefaultParticle)return;const imageInfo=this._objectClass.GetImageInfo();const texture=imageInfo.GetTexture();if(!texture)return;const wi=this.GetWorldInfo();const layer=wi.GetLayer();const viewport=tempRect;if(this._runtime.GetCanvasManager().IsPastingToDrawingCanvas())viewport.set(-Infinity,
+-Infinity,Infinity,Infinity);else if(layer.Has3DCamera())layer.CalculateViewport3D(wi.GetTotalZElevation(),viewport);else layer.GetViewportForZ(wi.GetTotalZElevation(),viewport);renderer.SetTexture(texture);const zScaleFactor=layer.Get2DScaleFactorToZ(wi.GetTotalZElevation());this._particleEngine.SetParticleScale(layer.GetRenderScale()*zScaleFactor);this._particleEngine.Draw(renderer,imageInfo.GetTexQuad(),viewport,layer.Has3DCamera())}SaveToJson(){const pe=this._particleEngine;return{"r":pe.GetRate(),
+"sc":pe.GetSprayCone(),"st":pe.GetSprayType(),"isp":pe.GetInitSpeed(),"isz":pe.GetInitSize(),"io":pe.GetInitOpacity(),"gr":pe.GetGrowRate(),"xr":pe.GetInitXRandom(),"yr":pe.GetInitYRandom(),"spr":pe.GetInitSpeedRandom(),"szr":pe.GetInitSizeRandom(),"grnd":pe.GetGrowRandom(),"acc":pe.GetAcceleration(),"g":pe.GetGravity(),"lar":pe.GetLifeAngleRandom(),"lsr":pe.GetLifeSpeedRandom(),"lor":pe.GetLifeOpacityRandom(),"dm":pe.GetDestroyModeIndex(),"to":pe.GetTimeout(),"s":pe.IsSpraying(),"pcc":pe._GetCreateCounter(),
+"ft":this._isFirstTick,"soc":this._spawnObjectClass?this._spawnObjectClass.GetSID():null,"p":pe.GetParticles().map(p=>p.toJSON())}}LoadFromJson(o,mode){const pe=this._particleEngine;pe.SetRate(o["r"]);pe.SetSprayCone(o["sc"]);pe.SetSprayType(o["st"]);pe.SetInitSpeed(o["isp"]);pe.SetInitSize(o["isz"]);pe.SetInitOpacity(o["io"]);pe.SetGrowRate(o["gr"]);pe.SetInitXRandom(o["xr"]);pe.SetInitYRandom(o["yr"]);pe.SetInitSpeedRandom(o["spr"]);pe.SetInitSizeRandom(o["szr"]);pe.SetGrowRandom(o["grnd"]);pe.SetAcceleration(o["acc"]);
+pe.SetGravity(o["g"]);pe.SetLifeAngleRandom(o["lar"]);pe.SetLifeSpeedRandom(o["lsr"]);pe.SetLifeOpacityRandom(o["lor"]);pe.SetDestroyModeIndex(o["dm"]);pe.SetTimeout(o["to"]);pe.SetSpraying(o["s"]);pe._SetCreateCounter(o["pcc"]);this._isFirstTick=o["ft"];if(o.hasOwnProperty("soc")){const objectClass=this.GetRuntime().GetObjectClassBySID(o["soc"]);if(objectClass)this._SetParticleObjectClass(objectClass)}const particlesData=o["p"];pe.SetParticleCount(particlesData.length,false);const particles=pe.GetParticles();
+for(let i=0,len=particles.length;i<len;++i)particles[i].setFromJSON(particlesData[i]);if(mode==="state"&&this._spawnObjectClass){pe.UpdateAllParticlesUserData();pe.ApplyParticleDataToUserData(this)}}_OnAfterLoad(){const pe=this._particleEngine;pe.UpdateAllParticlesUserData();pe.ApplyParticleDataToUserData(this);const particles=pe.GetParticles();for(let i=0,len=particles.length;i<len;++i){const particle=particles[i];const currentUserData=particle.GetUserData();if(!currentUserData)continue;const worldInfo=
+currentUserData.GetWorldInfo();if(!worldInfo)continue;const instance=worldInfo.GetInstance();if(!instance)continue;const savedUid=particle.GetUserDataUID();const currentUid=instance.GetUID();if(typeof savedUid==="number"&&typeof currentUid==="number"&&savedUid===currentUid)continue;if(typeof savedUid==="number"){const runtime=this.GetRuntime();const inst=runtime.GetInstanceByUID(savedUid);if(inst)runtime.DestroyInstance(inst)}}}Tick(){const dt=this._runtime.GetDt(this._inst);this._UpdateEngineParameters();
+if(this._isFirstTick&&this._particleEngine.GetSprayType()==="one-shot")this._particleEngine.ReInitAllParticles();this._particleEngine.Tick(dt);if(this._particleEngine.IsSpraying())this._runtime.UpdateRender();this.GetWorldInfo().SetBboxChanged();this._isFirstTick=false}_FastForward(time){const FF_DT=1/60;if(this._isFirstTick&&this._particleEngine.GetSprayType()==="one-shot")this._particleEngine.ReInitAllParticles();while(time>0){this._particleEngine.Tick(FF_DT);time-=FF_DT}if(this._particleEngine.IsSpraying())this._runtime.UpdateRender();
+this.GetWorldInfo().SetBboxChanged();this._isFirstTick=false}_OnParticleCreate(p,uid){let inst;if(typeof uid==="number")inst=this._runtime.GetInstanceByUID(uid);if(inst&&inst.GetObjectClass()!==this._spawnObjectClass)inst=null;if(!inst)inst=this._runtime.CreateInstance(this._spawnObjectClass,this.GetWorldInfo().GetLayer(),p.GetX(),p.GetY());const wi=inst.GetWorldInfo();wi.SetSize(p.GetSize(),p.GetSize());wi.SetAngle(p.GetAngle());wi.SetOpacity(p.GetOpacity());wi.SetUnpremultipliedColor(this.GetWorldInfo().GetUnpremultipliedColor());
+wi.SetBboxChanged();wi.ZOrderMoveAdjacentToInstance(this.GetInstance(),true);inst._TriggerOnCreated();p.SetUpdateCallback(this._particleUpdateCallback);p.SetDestroyCallback(this._particleDestroyCallback);return inst}_OnParticleUpdate(inst,dx,dy,dSize,dAngle,dOpacity){if(inst.IsDestroyed())return;const wi=inst.GetWorldInfo();wi.OffsetXY(dx,dy);wi.SetSize(wi.GetWidth()+dSize,wi.GetHeight()+dSize);wi.SetAngle(wi.GetAngle()+dAngle);wi.SetOpacity(wi.GetOpacity()+dOpacity);wi.SetBboxChanged()}_OnParticleDestroy(inst){if(inst.IsDestroyed())return;
+this._runtime.DestroyInstance(inst)}GetPropertyValueByIndex(index){const pe=this._particleEngine;switch(index){case RATE:return pe.GetRate();case SPRAY_CONE:return C3.toDegrees(pe.GetSprayCone());case TYPE:return pe.GetSprayType()==="one-shot"?ONE_SHOT:CONTINUOUS;case SPEED:return pe.GetInitSpeed();case SIZE:return pe.GetInitSize();case OPACITY:return pe.GetInitOpacity()*100;case GROW_RATE:return pe.GetGrowRate();case X_RANDOMISER:return pe.GetInitXRandom();case Y_RANDOMISER:return pe.GetInitYRandom();
+case INITIAL_SPEED_RANDOMISER:return pe.GetInitSpeedRandom();case SIZE_RANDOMISER:return pe.GetInitSizeRandom();case GROW_RATE_RANDOMISER:return pe.GetGrowRandom();case ACCELERATION:return pe.GetAcceleration();case GRAVITY:return pe.GetGravity();case ANGLE_RANDOMISER:return pe.GetLifeAngleRandom();case LIFE_SPEED_RANDOMISER:return pe.GetLifeSpeedRandom();case OPACITY_RANDOMISER:return pe.GetLifeOpacityRandom();case DESTROY_MODE:return pe.GetDestroyModeIndex();case TIMEOUT:return pe.GetTimeout()}}SetPropertyValueByIndex(index,
+value){const pe=this._particleEngine;switch(index){case RATE:pe.SetRate(value);break;case SPRAY_CONE:pe.SetSprayCone(C3.toRadians(value));break;case TYPE:pe.SetSprayType(value?"one-shot":"continuous-spray");break;case SPEED:pe.SetInitSpeed(value);break;case SIZE:pe.SetInitSize(value);break;case OPACITY:pe.SetInitOpacity(value/100);break;case GROW_RATE:pe.SetGrowRate(value);break;case X_RANDOMISER:pe.SetInitXRandom(value);break;case Y_RANDOMISER:pe.SetInitYRandom(value);break;case INITIAL_SPEED_RANDOMISER:pe.SetInitSpeedRandom(value);
+break;case SIZE_RANDOMISER:pe.SetInitSizeRandom(value);break;case GROW_RATE_RANDOMISER:pe.SetGrowRandom(value);break;case ACCELERATION:pe.SetAcceleration(value);break;case GRAVITY:pe.SetGravity(value);break;case ANGLE_RANDOMISER:pe.SetLifeAngleRandom(value);break;case LIFE_SPEED_RANDOMISER:pe.SetLifeSpeedRandom(value);break;case OPACITY_RANDOMISER:pe.SetLifeOpacityRandom(value);break;case DESTROY_MODE:pe.SetDestroyModeIndex(value);break;case TIMEOUT:pe.SetTimeout(value);break}}GetDebuggerProperties(){const prefix=
+"plugins.particles";const propPrefix=prefix+".properties";const dbgPrefix=prefix+".debugger";const pe=this._particleEngine;return[{title:prefix+".name",properties:[{name:dbgPrefix+".particle-count",value:pe.GetParticleCount()},{name:propPrefix+".type.name",value:[propPrefix+".type.items."+pe.GetSprayType()]},{name:dbgPrefix+".is-spraying",value:pe.IsSpraying(),onedit:v=>pe.SetSpraying(v)},{name:propPrefix+".rate.name",value:pe.GetRate(),onedit:v=>pe.SetRate(v)},{name:propPrefix+".spray-cone.name",
+value:C3.toDegrees(pe.GetSprayCone()),onedit:v=>pe.SetSprayCone(C3.toRadians(v))},{name:propPrefix+".speed.name",value:pe.GetInitSpeed(),onedit:v=>pe.SetInitSpeed(v)},{name:propPrefix+".size.name",value:pe.GetInitSize(),onedit:v=>pe.SetInitSize(v)},{name:propPrefix+".opacity.name",value:pe.GetInitOpacity(),onedit:v=>pe.SetInitOpacity(v)},{name:propPrefix+".grow-rate.name",value:pe.GetGrowRate(),onedit:v=>pe.SetGrowRate(v)},{name:propPrefix+".x-randomiser.name",value:pe.GetInitXRandom(),onedit:v=>
+pe.SetInitXRandom(v)},{name:propPrefix+".y-randomiser.name",value:pe.GetInitYRandom(),onedit:v=>pe.SetInitYRandom(v)},{name:propPrefix+".initial-speed-randomiser.name",value:pe.GetInitSpeedRandom(),onedit:v=>pe.SetInitSpeedRandom(v)},{name:propPrefix+".size-randomiser.name",value:pe.GetInitSizeRandom(),onedit:v=>pe.SetInitSizeRandom(v)},{name:propPrefix+".grow-rate-randomiser.name",value:pe.GetGrowRandom(),onedit:v=>pe.SetGrowRandom(v)},{name:propPrefix+".acceleration.name",value:pe.GetAcceleration(),
+onedit:v=>pe.SetAcceleration(v)},{name:propPrefix+".gravity.name",value:pe.GetGravity(),onedit:v=>pe.SetGravity(v)},{name:propPrefix+".angle-randomiser.name",value:pe.GetLifeAngleRandom(),onedit:v=>pe.SetLifeAngleRandom(v)},{name:propPrefix+".life-speed-randomiser.name",value:pe.GetLifeSpeedRandom(),onedit:v=>pe.SetLifeSpeedRandom(v)},{name:propPrefix+".opacity-randomiser.name",value:pe.GetLifeOpacityRandom(),onedit:v=>pe.SetLifeOpacityRandom(v)},{name:propPrefix+".timeout.name",value:pe.GetTimeout(),
+onedit:v=>pe.SetTimeout(v)}]}]}GetScriptInterfaceClass(){return self.IParticlesInstance}};const map=new WeakMap;function GetParticleEngine(iinst){return map.get(iinst).GetParticleEngine()}self.IParticlesInstance=class IParticlesInstance extends self.IWorldInstance{constructor(){super();map.set(this,self.IInstance._GetInitInst().GetSdkInstance())}set isSpraying(s){GetParticleEngine(this).SetSpraying(!!s)}get isSpraying(){return GetParticleEngine(this).IsSpraying()}set rate(r){C3X.RequireFiniteNumber(r);
+map.get(this)._SetRate(r)}get rate(){return GetParticleEngine(this).GetRate()}set sprayCone(c){C3X.RequireFiniteNumber(c);GetParticleEngine(this).SetSprayCone(c)}get sprayCone(){return GetParticleEngine(this).GetSprayCone()}set initSpeed(s){C3X.RequireFiniteNumber(s);GetParticleEngine(this).SetInitSpeed(s)}get initSpeed(){return GetParticleEngine(this).GetInitSpeed()}set initSize(s){C3X.RequireFiniteNumber(s);GetParticleEngine(this).SetInitSize(s)}get initSize(){return GetParticleEngine(this).GetInitSize()}set initOpacity(o){C3X.RequireFiniteNumber(o);
+GetParticleEngine(this).SetInitOpacity(o)}get initOpacity(){return GetParticleEngine(this).GetInitOpacity()}set initXRandom(x){C3X.RequireFiniteNumber(x);GetParticleEngine(this).SetInitXRandom(x)}get initXRandom(){return GetParticleEngine(this).GetInitXRandom()}set initYRandom(y){C3X.RequireFiniteNumber(y);GetParticleEngine(this).SetInitYRandom(y)}get initYRandom(){return GetParticleEngine(this).GetInitYRandom()}set initSpeedRandom(s){C3X.RequireFiniteNumber(s);GetParticleEngine(this).SetInitSpeedRandom(s)}get initSpeedRandom(){return GetParticleEngine(this).GetInitSpeedRandom()}set initSizeRandom(s){C3X.RequireFiniteNumber(s);
+GetParticleEngine(this).SetInitSizeRandom(s)}get initSizeRandom(){return GetParticleEngine(this).GetInitSizeRandom()}set initGrowRate(r){C3X.RequireFiniteNumber(r);GetParticleEngine(this).SetGrowRate(r)}get initGrowRate(){return GetParticleEngine(this).GetGrowRate()}set initGrowRandom(r){C3X.RequireFiniteNumber(r);GetParticleEngine(this).SetGrowRandom(r)}get initGrowRandom(){return GetParticleEngine(this).GetGrowRandom()}set acceleration(a){C3X.RequireFiniteNumber(a);GetParticleEngine(this).SetAcceleration(a)}get acceleration(){return GetParticleEngine(this).GetAcceleration()}set gravity(g){C3X.RequireFiniteNumber(g);
+GetParticleEngine(this).SetGravity(g)}get gravity(){return GetParticleEngine(this).GetGravity()}set lifeAngleRandom(r){C3X.RequireFiniteNumber(r);GetParticleEngine(this).SetLifeAngleRandom(r)}get lifeAngleRandom(){return GetParticleEngine(this).GetLifeAngleRandom()}set lifeSpeedRandom(r){C3X.RequireFiniteNumber(r);GetParticleEngine(this).SetLifeSpeedRandom(r)}get lifeSpeedRandom(){return GetParticleEngine(this).GetLifeSpeedRandom()}set lifeOpacityRandom(r){C3X.RequireFiniteNumber(r);GetParticleEngine(this).SetLifeOpacityRandom(r)}get lifeOpacityRandom(){return GetParticleEngine(this).GetLifeOpacityRandom()}set timeout(t){C3X.RequireFiniteNumber(t);
+GetParticleEngine(this).SetTimeout(t)}get timeout(){return GetParticleEngine(this).GetTimeout()}fastForward(time){C3X.RequireFiniteNumber(time);map.get(this)._FastForward(time)}setParticleObjectClass(iObjectClass){const inst=map.get(this);if(iObjectClass)inst._SetParticleObjectClass(inst.GetRuntime()._UnwrapIObjectClass(iObjectClass));else inst._SetParticleObjectClass(null)}}}{const C3=self.C3;C3.Plugins.Particles.Cnds={IsSpraying(){return this._particleEngine.IsSpraying()}}}
+{const C3=self.C3;C3.Plugins.Particles.Acts={SetSpraying(s){this._particleEngine.SetSpraying(s!==0)},SetRate(r){this._SetRate(r)},SetParticleObject(objectClass){this._SetParticleObjectClass(objectClass)},UnsetParticleObject(){this._SetParticleObjectClass(null)},SetSprayCone(c){this._particleEngine.SetSprayCone(C3.toRadians(c))},SetInitSpeed(x){this._particleEngine.SetInitSpeed(x)},SetInitSize(x){this._particleEngine.SetInitSize(x)},SetInitOpacity(x){this._particleEngine.SetInitOpacity(x/100)},SetGrowRate(x){this._particleEngine.SetGrowRate(x)},
+SetXRandomiser(x){this._particleEngine.SetInitXRandom(x)},SetYRandomiser(x){this._particleEngine.SetInitYRandom(x)},SetSpeedRandomiser(x){this._particleEngine.SetInitSpeedRandom(x)},SetSizeRandomiser(x){this._particleEngine.SetInitSizeRandom(x)},SetGrowRateRandomiser(x){this._particleEngine.SetGrowRandom(x)},SetParticleAcc(x){this._particleEngine.SetAcceleration(x)},SetGravity(x){this._particleEngine.SetGravity(x)},SetAngleRandomiser(x){this._particleEngine.SetLifeAngleRandom(x)},SetLifeSpeedRandomiser(x){this._particleEngine.SetLifeSpeedRandom(x)},
+SetOpacityRandomiser(x){this._particleEngine.SetLifeOpacityRandom(x)},SetTimeout(x){this._particleEngine.SetTimeout(x)},FastForward(time){this._FastForward(time)},SetEffect(effect){this.GetWorldInfo().SetBlendMode(effect);this._runtime.UpdateRender()}}}
+{const C3=self.C3;C3.Plugins.Particles.Exps={ParticleCount(){return this._particleEngine.GetParticleCount()},Rate(){return this._particleEngine.GetRate()},SprayCone(){return C3.toDegrees(this._particleEngine.GetSprayCone())},InitSpeed(){return this._particleEngine.GetInitSpeed()},InitSize(){return this._particleEngine.GetInitSize()},InitOpacity(){return this._particleEngine.GetInitOpacity()*100},InitGrowRate(){return this._particleEngine.GetGrowRate()},XRandom(){return this._particleEngine.GetInitXRandom()},
+YRandom(){return this._particleEngine.GetInitYRandom()},InitSizeRandom(){return this._particleEngine.GetInitSizeRandom()},InitSpeedRandom(){return this._particleEngine.GetInitSpeedRandom()},InitGrowRandom(){return this._particleEngine.GetGrowRandom()},ParticleAcceleration(){return this._particleEngine.GetAcceleration()},Gravity(){return this._particleEngine.GetGravity()},ParticleAngleRandom(){return this._particleEngine.GetLifeAngleRandom()},ParticleSpeedRandom(){return this._particleEngine.GetLifeSpeedRandom()},
+ParticleOpacityRandom(){return this._particleEngine.GetLifeOpacityRandom()},Timeout(){return this._particleEngine.GetTimeout()}}};
+
+}
+
+{
+'use strict';const C3=self.C3;const inactiveParticles=[];const MAX_RECYCLE_PARTICLES=1E3;const VALID_SPRAY_TYPES=new Set(["continuous-spray","one-shot"]);const DESTROY_MODES=["fade-to-invisible","timeout-expired","particle-stopped"];const tempRect=C3.New(C3.Rect);
+self.ParticleEngine=class ParticleEngine{constructor(){this._rate=0;this._sprayCone=0;this._sprayType="continuous-spray";this._isSpraying=false;this._masterOpacity=0;this._isPixelRounding=false;this._spawnX=0;this._spawnY=0;this._spawnAngle=0;this._initSpeed=0;this._initSize=0;this._initSizeScale=1;this._initOpacity=0;this._growRate=0;this._xRandom=0;this._yRandom=0;this._initSpeedRandom=0;this._initSizeRandom=0;this._growRandom=0;this._acceleration=0;this._gravity=0;this._lifeAngleRandom=0;this._lifeSpeedRandom=
+0;this._lifeOpacityRandom=0;this._destroyMode=0;this._timeout=0;this._createCounter=0;this._particleScale=1;this.ononeshotfinish=null;this.onparticlecreate=null;this._particles=[];this._boundingBox=new C3.Rect;this._color=new C3.Color}Release(){this.Cancel();C3.clearArray(this._particles);this._particles=null;this.ononeshotfinish=null;this.onparticlecreate=null;this._boundingBox=null;this._color=null}Cancel(){const particles=this._particles;for(let i=0,len=particles.length;i<len;++i)particles[i].Destroy();
+C3.appendArray(inactiveParticles,particles);C3.clearArray(particles);if(inactiveParticles.length>MAX_RECYCLE_PARTICLES)C3.truncateArray(inactiveParticles,MAX_RECYCLE_PARTICLES);this._isSpraying=false}CreateOneShotSpray(){for(let i=0,len=this._rate;i<len;++i)this._CreateParticle();if(this._particles.length)this._isSpraying=true}_CreateParticle(createUserData=true){let ret=null;if(inactiveParticles.length){ret=inactiveParticles.pop();ret.SetEngine(this)}else ret=C3.New(self.Particle,this);this._particles.push(ret);
+if(createUserData)ret.Init(this.onparticlecreate);else ret.Init();return ret}ReInitAllParticles(){const particles=this._particles;const onparticlecreate=this.onparticlecreate;for(let i=0,len=particles.length;i<len;++i)particles[i].Init(onparticlecreate)}UpdateAllParticlesUserData(){const particles=this._particles;const onparticlecreate=this.onparticlecreate;for(let i=0,len=particles.length;i<len;++i)particles[i].UpdateUserData(onparticlecreate)}ApplyParticleDataToUserData(inst){const particles=this._particles;
+for(let i=0,len=particles.length;i<len;++i){const particle=particles[i];const userData=particle.GetUserData();if(userData){const wi=userData.GetWorldInfo();wi.SetX(particle.GetX());wi.SetY(particle.GetY());wi.SetSize(particle.GetSize(),particle.GetSize());wi.SetOpacity(particle.GetOpacity());wi.SetAngle(particle.GetAngle());wi.SetUnpremultipliedColor(inst.GetWorldInfo().GetUnpremultipliedColor());wi.SetBboxChanged()}}}SetParticleCount(c,createUserData=true){const particles=this._particles;if(c<particles.length){const diff=
+particles.length-c;for(let i=0;i<diff;++i){const p=particles.pop();p.Destroy();inactiveParticles.push(p)}if(inactiveParticles.length>MAX_RECYCLE_PARTICLES)C3.truncateArray(inactiveParticles,MAX_RECYCLE_PARTICLES)}else if(c>particles.length){const diff=c-particles.length;for(let i=0;i<diff;++i)this._CreateParticle(createUserData)}}GetParticles(){return this._particles}GetParticleCount(){return this._particles.length}Tick(dt){this._SpawnContinuous(dt);this._TickParticles(dt);this._MaybeFinishOneShot()}_SpawnContinuous(dt){if(this._sprayType===
+"continuous-spray"&&this._isSpraying){this._createCounter+=dt*this._rate;const n=Math.floor(this._createCounter);this._createCounter-=n;for(let i=0;i<n;++i)this._CreateParticle()}}_SetCreateCounter(c){this._createCounter=c}_GetCreateCounter(){return this._createCounter}_TickParticles(dt){const bbox=this._boundingBox;bbox.set(this._spawnX,this._spawnY,this._spawnX,this._spawnY);const particles=this._particles;let j=0;for(let i=0,len=particles.length;i<len;++i){const p=particles[i];particles[j]=p;p.Tick(dt);
+if(p.IsActive()){++j;bbox.expandToContain(p.GetBoundingBox())}else{p.Destroy();inactiveParticles.push(p)}}C3.truncateArray(particles,j);if(inactiveParticles.length>MAX_RECYCLE_PARTICLES)C3.truncateArray(inactiveParticles,MAX_RECYCLE_PARTICLES)}_MaybeFinishOneShot(){if(this._sprayType==="one-shot"&&this._particles.length===0&&this._isSpraying){if(this.ononeshotfinish)this.ononeshotfinish();this._isSpraying=false}}Draw(renderer,texQuad,viewport,forceQuads){tempRect.set(texQuad.getTlx(),texQuad.getTly(),
+texQuad.getBrx(),texQuad.getBry());renderer.StartRenderingPoints(tempRect);this._color.copy(renderer.GetColor());const particles=this._particles;for(let i=0,len=particles.length;i<len;++i){const p=particles[i];if(viewport.intersectsRect(p.GetBoundingBox()))p.Draw(renderer,texQuad,forceQuads)}renderer.FinishRenderingPoints()}GetColor(){return this._color}SetRate(r){this._rate=+r}GetRate(){return this._rate}SetSprayCone(c){this._sprayCone=+c}GetSprayCone(){return this._sprayCone}SetSprayType(type){if(!VALID_SPRAY_TYPES.has(type))throw new Error("invalid spray type");
+this._sprayType=type}GetSprayType(){return this._sprayType}SetSpraying(s){this._isSpraying=!!s}IsSpraying(){return this._isSpraying}SetMasterOpacity(o){this._masterOpacity=+o}GetMasterOpacity(){return this._masterOpacity}SetPixelRounding(r){this._isPixelRounding=!!r}IsPixelRounding(){return this._isPixelRounding}SetSpawnX(x){this._spawnX=+x}GetSpawnX(){return this._spawnX}SetSpawnY(y){this._spawnY=+y}GetSpawnY(){return this._spawnY}SetSpawnAngle(a){this._spawnAngle=+a}GetInitAngle(){return this._spawnAngle}SetInitSpeed(s){this._initSpeed=
++s}GetInitSpeed(){return this._initSpeed}SetInitSize(s){this._initSize=+s}GetInitSize(){return this._initSize}SetInitSizeScale(s){this._initSizeScale=+s}GetInitSizeScale(){return this._initSizeScale}SetInitOpacity(o){this._initOpacity=+o}GetInitOpacity(){return this._initOpacity}SetGrowRate(g){this._growRate=+g}GetGrowRate(){return this._growRate}SetInitXRandom(x){this._xRandom=+x}GetInitXRandom(){return this._xRandom}SetInitYRandom(y){this._yRandom=+y}GetInitYRandom(){return this._yRandom}SetInitSpeedRandom(s){this._initSpeedRandom=
++s}GetInitSpeedRandom(){return this._initSpeedRandom}SetInitSizeRandom(s){this._initSizeRandom=+s}GetInitSizeRandom(){return this._initSizeRandom}SetGrowRandom(g){this._growRandom=+g}GetGrowRandom(){return this._growRandom}SetAcceleration(a){this._acceleration=+a}GetAcceleration(){return this._acceleration}SetGravity(g){this._gravity=+g}GetGravity(){return this._gravity}SetLifeAngleRandom(a){this._lifeAngleRandom=+a}GetLifeAngleRandom(){return this._lifeAngleRandom}SetLifeSpeedRandom(s){this._lifeSpeedRandom=
++s}GetLifeSpeedRandom(){return this._lifeSpeedRandom}SetLifeOpacityRandom(o){this._lifeOpacityRandom=+o}GetLifeOpacityRandom(){return this._lifeOpacityRandom}SetDestroyMode(m){let i=DESTROY_MODES.indexOf(m);if(i===-1)throw new Error("invalid destroy mode");this._destroyMode=i}SetDestroyModeIndex(i){this.SetDestroyMode(DESTROY_MODES[i])}GetDestroyMode(){return DESTROY_MODES[this._destroyMode]}GetDestroyModeIndex(){return this._destroyMode}SetTimeout(t){this._timeout=+t}GetTimeout(){return this._timeout}SetParticleScale(s){this._particleScale=
++s}GetParticleScale(){return this._particleScale}GetBoundingBox(){return this._boundingBox}};
+
+}
+
+{
+'use strict';const C3=self.C3;const ParticleEngine=self.ParticleEngine;function randomOffset(x){return Math.random()*x-x/2}const tmpQuad=new C3.Quad;const tmpColor=new C3.Color;const DPR=self.devicePixelRatio||1;let didChangeColor=false;
+self.Particle=class Particle{constructor(engine){this._engine=engine;this._isActive=false;this._x=0;this._y=0;this._speed=0;this._angle=0;this._opacity=1;this._lastOpacity=0;this._grow=0;this._size=0;this._halfSize=0;this._gs=0;this._age=0;this._bbox=new C3.Rect;this._userData=null;this._userDataUid=NaN;this._updateCallback=null;this._destroyCallback=null}SetEngine(engine){this._engine=engine}Init(particleCreateCallback){const engine=this._engine;this._isActive=true;this._x=engine.GetSpawnX()+randomOffset(engine.GetInitXRandom());
+this._y=engine.GetSpawnY()+randomOffset(engine.GetInitYRandom());this._speed=engine.GetInitSpeed()+randomOffset(engine.GetInitSpeedRandom());this._angle=engine.GetInitAngle()+randomOffset(engine.GetSprayCone());this._opacity=engine.GetInitOpacity();this._lastOpacity=this._opacity;this._size=(engine.GetInitSize()+randomOffset(engine.GetInitSizeRandom()))*engine.GetInitSizeScale();this._halfSize=this._size/2;this._grow=engine.GetGrowRate()+randomOffset(engine.GetGrowRandom());this._gs=0;this._age=0;
+this._UpdateBoundingBox();if(particleCreateCallback){if(!this._userData)this._userData=particleCreateCallback(this)}else{this._userData=null;this._updateCallback=null;this._destroyCallback=null}}UpdateUserData(particleCreateCallback){if(particleCreateCallback){if(!this._userData||this._userData.IsDestroyed())this._userData=particleCreateCallback(this,this._userDataUid)}else{this._userData=null;this._updateCallback=null;this._destroyCallback=null}}SetUpdateCallback(f){this._updateCallback=f}SetDestroyCallback(f){this._destroyCallback=
+f}Destroy(){const particleDestroyCallback=this._destroyCallback;if(particleDestroyCallback)particleDestroyCallback(this._userData);this._userData=null;this._updateCallback=null;this._destroyCallback=null}toJSON(){let uid;if(this._userData&&this._userData.GetWorldInfo())uid=this._userData.GetWorldInfo().GetInstance().GetUID();return[this._x,this._y,this._speed,this._angle,this._opacity,this._grow,this._size,this._gs,this._age,uid]}setFromJSON(o){this._x=o[0];this._y=o[1];this._speed=o[2];this._angle=
+o[3];this._opacity=o[4];this._lastOpacity=this._opacity;this._grow=o[5];this._size=o[6];this._gs=o[7];this._age=o[8];this._userDataUid=o[9];this._halfSize=this._size/2;this._UpdateBoundingBox()}Tick(dt){const engine=this._engine;const dist=this._speed*dt;const a=this._angle;const dx=Math.cos(a)*dist;const dy=Math.sin(a)*dist+this._gs*dt;this._x+=dx;this._y+=dy;const dSize=this._grow*dt;this._size+=dSize;this._halfSize=this._size/2;this._speed+=engine.GetAcceleration()*dt;this._gs+=engine.GetGravity()*
+dt;this._age+=dt;this._UpdateBoundingBox();const lifeAngleRandom=engine.GetLifeAngleRandom();const lifeSpeedRandom=engine.GetLifeSpeedRandom();const lifeOpacityRandom=engine.GetLifeOpacityRandom();let dAngle=0;if(lifeAngleRandom!==0){dAngle=randomOffset(lifeAngleRandom*dt);this._angle+=dAngle}if(lifeSpeedRandom!==0)this._speed+=randomOffset(lifeSpeedRandom*dt);if(lifeOpacityRandom!==0)this._opacity=C3.clamp(this._opacity+randomOffset(lifeOpacityRandom*dt),0,1);const isActive=this._size>=1&&(engine.GetDestroyModeIndex()===
+2?this._speed>0:this._age<engine.GetTimeout());const particleUpdateCallback=this._updateCallback;if(particleUpdateCallback&&isActive){let curOpacity=engine.GetMasterOpacity()*this._opacity;if(engine.GetDestroyModeIndex()===0)curOpacity*=1-this._age/engine.GetTimeout();const dOpacity=curOpacity-this._lastOpacity;this._lastOpacity=curOpacity;particleUpdateCallback(this._userData,dx,dy,dSize,dAngle,dOpacity)}this._isActive=isActive}IsActive(){return this._isActive}GetBoundingBox(){return this._bbox}_UpdateBoundingBox(){const x=
+this._x;const y=this._y;const halfSize=this._halfSize;this._bbox.set(x-halfSize,y-halfSize,x+halfSize,y+halfSize)}Draw(renderer,texQuad,forceQuads){if(this._userData)return;const engine=this._engine;let opacity=engine.GetMasterOpacity()*this._opacity;if(engine.GetDestroyModeIndex()===0)opacity*=1-this._age/engine.GetTimeout();if(opacity<=0)return;const size=this._size;const scaledSize=size*engine.GetParticleScale()*DPR;if(scaledSize<1)return;let x=this._x;let y=this._y;if(engine.IsPixelRounding()){x=
+x+.5|0;y=y+.5|0}if(renderer.IsWebGPU())renderer.Point(x,y,size,opacity);else if(forceQuads||scaledSize>renderer.GetMaxPointSize()||scaledSize<renderer.GetMinPointSize()){tmpColor.copy(engine.GetColor());tmpColor.multiplyAlpha(opacity);renderer.SetColor(tmpColor);didChangeColor=true;tmpQuad.setFromRect(this._bbox);renderer.Quad4(tmpQuad,texQuad)}else{if(didChangeColor){renderer.SetColor(engine.GetColor());didChangeColor=false}renderer.Point(x,y,scaledSize,opacity)}}GetUserData(){return this._userData}GetUserDataUID(){return this._userDataUid}GetX(){return this._x}GetY(){return this._y}GetSize(){return this._size}GetAngle(){return this._angle}GetOpacity(){return this._opacity}};
+
+}
+
+{
+'use strict';{const C3=self.C3;const actionPromises=[];C3.Plugins.Audio=class AudioPlugin extends C3.SDKPluginBase{constructor(opts){super(opts)}_AddActionPromise(promise){actionPromises.push(promise)}static async WaitForAllActionPromises(){await Promise.all(actionPromises);C3.clearArray(actionPromises)}Release(){super.Release()}}}
+{const C3=self.C3;const C3X=self.C3X;C3.Plugins.Audio.Type=class AudioType extends C3.SDKTypeBase{constructor(objectClass){super(objectClass)}Release(){super.Release()}OnCreate(){}GetScriptInterfaceClass(){return self.IAudioObjectType}};function GetAudioDOMInterface(){if(self["C3Audio_DOMInterface"])return self["C3Audio_DOMInterface"];else throw new Error("audio scripting API cannot be used here - make sure the project is using DOM mode, not worker mode");}self.IAudioObjectType=class IAudioObjectType extends self.IObjectClass{constructor(objectType){super(objectType)}get audioContext(){return GetAudioDOMInterface()["GetAudioContextExtern"]()}get destinationNode(){return GetAudioDOMInterface()["GetDestinationNodeExtern"]()}}}
+{const C3=self.C3;const DOM_COMPONENT_ID="audio";const LATENCY_HINTS=["interactive","balanced","playback"];C3.Plugins.Audio.Instance=class AudioInstance extends C3.SDKInstanceBase{constructor(inst,properties){super(inst,DOM_COMPONENT_ID);this._nextPlayTime=0;this._triggerTags=[];this._enableMultiTags=true;this._timeScaleMode=0;this._saveLoadMode=0;this._playInBackground=false;this._panningModel=1;this._distanceModel=1;this._listenerPos=[this._runtime.GetViewportWidth()/2,this._runtime.GetViewportHeight()/
+2,600];this._listenerForwardVec=[0,0,-1];this._listenerUpVec=[0,1,0];this._referenceDistance=600;this._maxDistance=1E4;this._rolloffFactor=1;this._listenerInst=null;this._loadListenerUid=-1;this._masterVolume=1;this._isSilent=false;this._sampleRate=0;this._audioContextState="suspended";this._outputLatency=0;this._effectCount=new Map;this._preloadTotal=0;this._preloadCount=0;this._bufferMetadata=new Map;this._remoteUrls=new Map;let latencyHint="interactive";if(properties){this._timeScaleMode=properties[0];
+this._saveLoadMode=properties[1];this._playInBackground=properties[2];latencyHint=LATENCY_HINTS[properties[3]];this._enableMultiTags=properties[4];this._panningModel=properties[5];this._distanceModel=properties[6];this._listenerPos[2]=properties[7];this._referenceDistance=properties[8];this._maxDistance=properties[9];this._rolloffFactor=properties[10]}this._lastAIState=[];this._lastFxState=[];this._lastAnalysersData=[];this.AddDOMMessageHandlers([["state",e=>this._OnUpdateState(e)],["audiocontext-state",
+e=>this._OnAudioContextStateChanged(e)],["fxstate",e=>this._OnUpdateFxState(e)],["trigger",e=>this._OnTrigger(e)],["buffer-metadata",e=>this._OnBufferMetadata(e)]]);const rt=this.GetRuntime().Dispatcher();this._disposables=new C3.CompositeDisposable(C3.Disposable.From(rt,"instancedestroy",e=>this._OnInstanceDestroyed(e.instance)),C3.Disposable.From(rt,"afterload",()=>this._OnAfterLoad()),C3.Disposable.From(rt,"suspend",()=>this._OnSuspend()),C3.Disposable.From(rt,"resume",()=>this._OnResume()));this._runtime.AddLoadPromise(this.PostToDOMAsync("create-audio-context",
+{"preloadList":this._runtime.GetAssetManager().GetAudioToPreload().map(o=>({"originalUrl":o.originalUrl,"url":o.url,"type":o.type,"fileSize":o.fileSize})),"isiOSCordova":this._runtime.IsiOSCordova(),"isSafari":C3.Platform.Browser==="Safari","timeScaleMode":this._timeScaleMode,"latencyHint":latencyHint,"panningModel":this._panningModel,"distanceModel":this._distanceModel,"refDistance":this._referenceDistance,"maxDistance":this._maxDistance,"rolloffFactor":this._rolloffFactor,"listenerPos":this._listenerPos}).then(info=>
+{this._sampleRate=info["sampleRate"];this._audioContextState=info["audioContextState"];this._outputLatency=info["outputLatency"]}));this._StartTicking()}Release(){this._listenerInst=null;super.Release()}_SplitTags(tagStr){if(this._enableMultiTags)return tagStr.split(" ").filter(s=>!!s);else return tagStr?[tagStr]:[]}_MatchTagLists(tagArr1,tagArr2){for(const t2 of tagArr2){let found=false;for(const t1 of tagArr1)if(C3.equalsNoCase(t1,t2)){found=true;break}if(!found)return false}return true}_MatchTagListToStr(tagArr,
+tagStr){return this._MatchTagLists(tagArr,this._SplitTags(tagStr))}_AddActionPromise(promise){this.GetPlugin()._AddActionPromise(promise)}_OnInstanceDestroyed(inst){if(this._listenerInst===inst)this._listenerInst=null}DbToLinearNoCap(x){return Math.pow(10,x/20)}DbToLinear(x){const v=this.DbToLinearNoCap(x);if(!isFinite(v))return 0;return Math.max(Math.min(v,1),0)}LinearToDbNoCap(x){return Math.log(x)/Math.log(10)*20}LinearToDb(x){return this.LinearToDbNoCap(Math.max(Math.min(x,1),0))}_OnSuspend(){if(this._playInBackground)return;
+this.PostToDOM("set-suspended",{"isSuspended":true})}_OnResume(){if(this._playInBackground)return;this.PostToDOM("set-suspended",{"isSuspended":false})}_OnUpdateState(e){const tickCount=e["tickCount"];this._outputLatency=e["outputLatency"];const preservePlaceholders=this._lastAIState.filter(ai=>ai.hasOwnProperty("placeholder")&&(ai["placeholder"]>tickCount||ai["placeholder"]===-1));this._lastAIState=e["audioInstances"];this._lastAnalysersData=e["analysers"];if(preservePlaceholders.length>0)C3.appendArray(this._lastAIState,
+preservePlaceholders)}_OnBufferMetadata(e){this._bufferMetadata.set(e["originalUrl"],{duration:e["duration"]})}_OnAudioContextStateChanged(e){this._audioContextState=e["audioContextState"]}GetAudioContextState(){if(this._runtime.IsExportToVideo())return"running";else return this._audioContextState}_OnUpdateFxState(e){this._lastFxState=e["fxstate"]}_GetFirstAudioStateByTags(tagStr){const tagArr=this._SplitTags(tagStr);for(const a of this._lastAIState)if(this._MatchTagLists(a["tags"],tagArr))return a;
+return null}_IsTagPlaying(tagStr){const tagArr=this._SplitTags(tagStr);return this._lastAIState.some(ai=>this._MatchTagLists(ai["tags"],tagArr)&&ai["isPlaying"])}_MaybeMarkAsPlaying(originalUrl,tagStr,isMusic,isLooping,vol){if(this._IsTagPlaying(tagStr))return null;const bufferMeta=this._bufferMetadata.get(originalUrl);const state={"tags":this._SplitTags(tagStr),"duration":bufferMeta?bufferMeta.duration:0,"volume":vol,"isPlaying":true,"playbackTime":0,"playbackRate":1,"uid":-1,"bufferOriginalUrl":originalUrl,
+"bufferUrl":"","bufferType":"","isMusic":isMusic,"isLooping":isLooping,"isMuted":false,"resumePosition":0,"pan":null,"placeholder":-1};this._lastAIState.push(state);return state}async _OnTrigger(e){const type=e["type"];this._triggerTags=e["tags"];const aiId=e["aiid"];if(type==="ended"){for(const aiState of this._lastAIState)if(aiState["aiid"]===aiId){aiState["isPlaying"]=false;break}await this.TriggerAsync(C3.Plugins.Audio.Cnds.OnEnded)}else if(type==="fade-ended")await this.TriggerAsync(C3.Plugins.Audio.Cnds.OnFadeEnded)}_MatchTriggerTag(tagStr){return this._MatchTagListToStr(this._triggerTags,
+tagStr)}Tick(){const o={"timeScale":this._runtime.GetTimeScale(),"gameTime":this._runtime.GetGameTimeRaw(),"instPans":this.GetInstancePans(),"tickCount":this._runtime.GetTickCountNoSave()};if(this._listenerInst){const wi=this._listenerInst.GetWorldInfo();this._listenerPos[0]=wi.GetX();this._listenerPos[1]=wi.GetY();o["listenerPos"]=this._listenerPos;o["listenerOrientation"]=[...this._listenerForwardVec,...this._listenerUpVec]}this.PostToDOM("tick",o)}rotatePtAround(px,py,a,ox,oy){if(a===0)return[px,
+py];const sin_a=Math.sin(a);const cos_a=Math.cos(a);px-=ox;py-=oy;const left_sin_a=px*sin_a;const top_sin_a=py*sin_a;const left_cos_a=px*cos_a;const top_cos_a=py*cos_a;px=left_cos_a-top_sin_a;py=top_cos_a+left_sin_a;px+=ox;py+=oy;return[px,py]}GetInstancePans(){return this._lastAIState.filter(ai=>ai["uid"]!==-1).map(ai=>this._runtime.GetInstanceByUID(ai["uid"])).filter(inst=>inst).map(inst=>{const wi=inst.GetWorldInfo();const layerAngle=wi.GetLayer().GetAngle();const [x,y]=this.rotatePtAround(wi.GetX(),
+wi.GetY(),-layerAngle,this._listenerPos[0],this._listenerPos[1]);return{"uid":inst.GetUID(),"x":x,"y":y,"z":wi.GetTotalZElevation(),"angle":wi.GetAngle()-layerAngle}})}GetAnalyserData(tagStr,index){for(const o of this._lastAnalysersData)if(o.index===index&&C3.equalsNoCase(o["tag"],tagStr))return o;return null}_IncrementEffectCount(tagStr){for(const tag of this._SplitTags(tagStr)){const lowerTag=tag.toLowerCase();this._effectCount.set(lowerTag,(this._effectCount.get(lowerTag)||0)+1)}}_ShouldSave(ai){if(ai.hasOwnProperty("placeholder"))return false;
+if(this._saveLoadMode===3)return false;else if(ai["isMusic"]&&this._saveLoadMode===1)return false;else if(!ai["isMusic"]&&this._saveLoadMode===2)return false;else return true}SaveToJson(){return{"isSilent":this._isSilent,"masterVolume":this._masterVolume,"listenerZ":this._listenerPos[2],"listenerForwardVec":this._listenerForwardVec,"listenerUpVec":this._listenerUpVec,"listenerUid":this._listenerInst?this._listenerInst.GetUID():-1,"remoteUrls":[...this._remoteUrls.entries()],"playing":this._lastAIState.filter(ai=>
+this._ShouldSave(ai)),"effects":this._lastFxState,"analysers":this._lastAnalysersData}}LoadFromJson(o){this._isSilent=o["isSilent"];this._masterVolume=o["masterVolume"];this._listenerPos[2]=o["listenerZ"];this._listenerInst=null;this._loadListenerUid=o["listenerUid"];if(o.hasOwnProperty("listenerForwardVec"))this._listenerForwardVec=o["listenerForwardVec"];else this._listenerForwardVec=[0,0,-1];if(o.hasOwnProperty("listenerUpVec"))this._listenerUpVec=o["listenerUpVec"];else this._listenerUpVec=[0,
+1,0];this._remoteUrls.clear();if(o["remoteUrls"])for(const [k,v]of o["remoteUrls"])this._remoteUrls.set(k,v);this._lastAIState=o["playing"];for(const a of this._lastAIState)if(a.hasOwnProperty("tag")&&!a.hasOwnProperty("tags"))a["tags"]=[a["tag"]].filter(s=>!!s);this._lastFxState=o["effects"];this._lastAnalysersData=o["analysers"]}_OnAfterLoad(){if(this._loadListenerUid!==-1){this._listenerInst=this._runtime.GetInstanceByUID(this._loadListenerUid);this._loadListenerUid=-1;if(this._listenerInst){const wi=
+this._listenerInst.GetWorldInfo();this._listenerPos[0]=wi.GetX();this._listenerPos[1]=wi.GetY()}}for(const ai of this._lastAIState){const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(ai["bufferOriginalUrl"]);if(info){ai["bufferUrl"]=info.url;ai["bufferType"]=info.type}else ai["bufferUrl"]=null}for(const fxChainData of Object.values(this._lastFxState))for(const fxData of fxChainData)if(fxData.hasOwnProperty("bufferOriginalUrl")){const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(fxData["bufferOriginalUrl"]);
+if(info){fxData["bufferUrl"]=info.url;fxData["bufferType"]=info.type}}this.PostToDOM("load-state",{"saveLoadMode":this._saveLoadMode,"timeScale":this._runtime.GetTimeScale(),"gameTime":this._runtime.GetGameTimeRaw(),"listenerPos":this._listenerPos,"listenerOrientation":[...this._listenerForwardVec,...this._listenerUpVec],"isSilent":this._isSilent,"masterVolume":this._masterVolume,"playing":this._lastAIState.filter(ai=>ai["bufferUrl"]!==null),"effects":this._lastFxState})}GetDebuggerProperties(){const fxProps=
+[];for(const [tag,fxChainData]of Object.entries(this._lastFxState))fxProps.push({name:"$"+tag,value:fxChainData.map(d=>d["type"]).join(", ")});const prefix="plugins.audio.debugger";return[{title:prefix+".tag-effects",properties:fxProps},{title:prefix+".currently-playing",properties:[{name:prefix+".currently-playing-count",value:this._lastAIState.length},...this._lastAIState.map((s,index)=>({name:"$#"+index,value:`${s["bufferOriginalUrl"]} ("${s["tags"]}") ${Math.round(s["playbackTime"]*10)/10} / ${Math.round(s["duration"]*
+10)/10}`}))]}]}}}{const C3=self.C3;C3.Plugins.Audio.Cnds={OnEnded(tagStr){return this._MatchTriggerTag(tagStr)},OnFadeEnded(tagStr){return this._MatchTriggerTag(tagStr)},PreloadsComplete(){return this._preloadCount===this._preloadTotal},AdvancedAudioSupported(){return true},IsSilent(){return this._isSilent},IsAnyPlaying(){for(const ai of this._lastAIState)if(ai["isPlaying"])return true;return false},IsTagPlaying(tagStr){return this._IsTagPlaying(tagStr)}}}
+{const C3=self.C3;const FILTER_TYPES=["lowpass","highpass","bandpass","lowshelf","highshelf","peaking","notch","allpass"];C3.Plugins.Audio.Acts={Play(file,looping,vol,stereoPan,tagStr){const ret=C3.Plugins.Audio.Acts._DoPlay.call(this,file,looping,vol,stereoPan,tagStr);this._AddActionPromise(ret);return ret},PlayFromTimeline(file,vol,tagStr,startOffset){C3.Plugins.Audio.Acts._DoPlay.call(this,file,0,vol,0,tagStr,startOffset)},async _DoPlay(file,looping,vol,stereoPan,tagStr,startOffset){if(this._isSilent)return;
+const isMusic=file[1];const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(file[0]);if(!info)return;const nextPlayTime=this._nextPlayTime;this._nextPlayTime=0;const state=this._MaybeMarkAsPlaying(file[0],tagStr,isMusic,looping!==0,this.DbToLinear(vol));try{await this.PostToDOMAsync("play",{"originalUrl":file[0],"url":info.url,"type":info.type,"isMusic":isMusic,"tags":this._SplitTags(tagStr),"isLooping":looping!==0,"vol":this.DbToLinear(vol),"stereoPan":C3.clamp(stereoPan/100,-1,1),"pos":startOffset||
+0,"off":nextPlayTime,"trueClock":!!self["C3_GetAudioContextCurrentTime"]})}finally{if(state)state["placeholder"]=this._runtime.GetTickCountNoSave()}},async PlayAtPosition(file,looping,vol,x,y,z,angle,innerAngle,outerAngle,outerGain,tagStr){if(this._isSilent)return;const isMusic=file[1];const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(file[0]);if(!info)return;const nextPlayTime=this._nextPlayTime;this._nextPlayTime=0;const state=this._MaybeMarkAsPlaying(file[0],tagStr,isMusic,looping!==
+0,this.DbToLinear(vol));try{await this.PostToDOMAsync("play",{"originalUrl":file[0],"url":info.url,"type":info.type,"isMusic":isMusic,"tags":this._SplitTags(tagStr),"isLooping":looping!==0,"vol":this.DbToLinear(vol),"pos":0,"off":nextPlayTime,"trueClock":!!self["C3_GetAudioContextCurrentTime"],"panning":{"x":x,"y":y,"z":z,"angle":C3.toRadians(angle),"innerAngle":C3.toRadians(innerAngle),"outerAngle":C3.toRadians(outerAngle),"outerGain":this.DbToLinear(outerGain)}})}finally{if(state)state["placeholder"]=
+this._runtime.GetTickCountNoSave()}},async PlayAtObject(file,looping,vol,objectClass,innerAngle,outerAngle,outerGain,tagStr){if(this._isSilent)return;if(!objectClass)return;const inst=objectClass.GetFirstPicked();if(!inst||!inst.GetWorldInfo())return;const wi=inst.GetWorldInfo();const layerAngle=wi.GetLayer().GetAngle();const [x,y]=this.rotatePtAround(wi.GetX(),wi.GetY(),-layerAngle,this._listenerPos[0],this._listenerPos[1]);const isMusic=file[1];const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(file[0]);
+if(!info)return;const nextPlayTime=this._nextPlayTime;this._nextPlayTime=0;const state=this._MaybeMarkAsPlaying(file[0],tagStr,isMusic,looping!==0,this.DbToLinear(vol));try{await this.PostToDOMAsync("play",{"originalUrl":file[0],"url":info.url,"type":info.type,"isMusic":isMusic,"tags":this._SplitTags(tagStr),"isLooping":looping!==0,"vol":this.DbToLinear(vol),"pos":0,"off":nextPlayTime,"trueClock":!!self["C3_GetAudioContextCurrentTime"],"panning":{"x":x,"y":y,"z":wi.GetTotalZElevation(),"angle":wi.GetAngle()-
+layerAngle,"innerAngle":C3.toRadians(innerAngle),"outerAngle":C3.toRadians(outerAngle),"outerGain":this.DbToLinear(outerGain),"uid":inst.GetUID()}})}finally{if(state)state["placeholder"]=this._runtime.GetTickCountNoSave()}},async PlayByName(folder,filename,looping,vol,stereoPan,tagStr){if(this._isSilent)return;const isMusic=folder===1;const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(filename)||this._remoteUrls.get(filename.toLowerCase());if(!info)return;const nextPlayTime=this._nextPlayTime;
+this._nextPlayTime=0;const state=this._MaybeMarkAsPlaying(filename,tagStr,isMusic,looping!==0,this.DbToLinear(vol));try{await this.PostToDOMAsync("play",{"originalUrl":filename,"url":info.url,"type":info.type,"isMusic":isMusic,"tags":this._SplitTags(tagStr),"isLooping":looping!==0,"vol":this.DbToLinear(vol),"stereoPan":C3.clamp(stereoPan/100,-1,1),"pos":0,"off":nextPlayTime,"trueClock":!!self["C3_GetAudioContextCurrentTime"]})}finally{if(state)state["placeholder"]=this._runtime.GetTickCountNoSave()}},
+async PlayAtPositionByName(folder,filename,looping,vol,x,y,z,angle,innerAngle,outerAngle,outerGain,tagStr){if(this._isSilent)return;const isMusic=folder===1;const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(filename)||this._remoteUrls.get(filename.toLowerCase());if(!info)return;const nextPlayTime=this._nextPlayTime;this._nextPlayTime=0;const state=this._MaybeMarkAsPlaying(filename,tagStr,isMusic,looping!==0,this.DbToLinear(vol));try{await this.PostToDOMAsync("play",{"originalUrl":filename,
+"url":info.url,"type":info.type,"isMusic":isMusic,"tags":this._SplitTags(tagStr),"isLooping":looping!==0,"vol":this.DbToLinear(vol),"pos":0,"off":nextPlayTime,"trueClock":!!self["C3_GetAudioContextCurrentTime"],"panning":{"x":x,"y":y,"z":z,"angle":C3.toRadians(angle),"innerAngle":C3.toRadians(innerAngle),"outerAngle":C3.toRadians(outerAngle),"outerGain":this.DbToLinear(outerGain)}})}finally{if(state)state["placeholder"]=this._runtime.GetTickCountNoSave()}},async PlayAtObjectByName(folder,filename,
+looping,vol,objectClass,innerAngle,outerAngle,outerGain,tagStr){if(this._isSilent)return;if(this._isSilent)return;if(!objectClass)return;const inst=objectClass.GetFirstPicked();if(!inst||!inst.GetWorldInfo())return;const wi=inst.GetWorldInfo();const layerAngle=wi.GetLayer().GetAngle();const [x,y]=this.rotatePtAround(wi.GetX(),wi.GetY(),-layerAngle,this._listenerPos[0],this._listenerPos[1]);const isMusic=folder===1;const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(filename)||this._remoteUrls.get(filename.toLowerCase());
+if(!info)return;const nextPlayTime=this._nextPlayTime;this._nextPlayTime=0;const state=this._MaybeMarkAsPlaying(filename,tagStr,isMusic,looping!==0,this.DbToLinear(vol));try{await this.PostToDOMAsync("play",{"originalUrl":filename,"url":info.url,"type":info.type,"isMusic":isMusic,"tags":this._SplitTags(tagStr),"isLooping":looping!==0,"vol":this.DbToLinear(vol),"pos":0,"off":nextPlayTime,"trueClock":!!self["C3_GetAudioContextCurrentTime"],"panning":{"x":x,"y":y,"z":wi.GetTotalZElevation(),"angle":wi.GetAngle()-
+layerAngle,"innerAngle":C3.toRadians(innerAngle),"outerAngle":C3.toRadians(outerAngle),"outerGain":this.DbToLinear(outerGain),"uid":inst.GetUID()}})}finally{if(state)state["placeholder"]=this._runtime.GetTickCountNoSave()}},SetLooping(tagStr,looping){this.PostToDOM("set-looping",{"tags":this._SplitTags(tagStr),"isLooping":looping===0})},SetMuted(tagStr,muted){this.PostToDOM("set-muted",{"tags":this._SplitTags(tagStr),"isMuted":muted===0})},SetVolume(tagStr,vol){this.PostToDOM("set-volume",{"tags":this._SplitTags(tagStr),
+"vol":this.DbToLinear(vol)})},FadeVolume(tagStr,vol,duration,ending){this.PostToDOM("fade-volume",{"tags":this._SplitTags(tagStr),"vol":this.DbToLinear(vol),"duration":duration,"stopOnEnd":ending===0})},SetStereoPan(tagStr,p){this.PostToDOM("set-stereo-pan",{"tags":this._SplitTags(tagStr),"p":C3.clamp(p/100,-1,1)})},async Preload(file){const isMusic=file[1];const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(file[0]);if(!info)return;this._preloadTotal++;await this.PostToDOMAsync("preload",
+{"originalUrl":file[0],"url":info.url,"type":info.type,"isMusic":isMusic});this._preloadCount++},async PreloadByName(folder,filename){const isMusic=folder===1;const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(filename)||this._remoteUrls.get(filename.toLowerCase());if(!info)return;this._preloadTotal++;await this.PostToDOMAsync("preload",{"originalUrl":filename,"url":info.url,"type":info.type,"isMusic":isMusic});this._preloadCount++},SetPlaybackRate(tagStr,rate){this.PostToDOM("set-playback-rate",
+{"tags":this._SplitTags(tagStr),"rate":Math.max(rate,0)})},Stop(tagStr){this.PostToDOM("stop",{"tags":this._SplitTags(tagStr)})},StopAll(){this.PostToDOM("stop-all")},SetPaused(tagStr,state){this.PostToDOM("set-paused",{"tags":this._SplitTags(tagStr),"paused":state===0})},Seek(tagStr,pos){this.PostToDOM("seek",{"tags":this._SplitTags(tagStr),"pos":pos})},SetSilent(s){if(s===2)s=this._isSilent?1:0;s=s===0;if(this._isSilent===s)return;this._isSilent=s;this.PostToDOM("set-silent",{"isSilent":s})},SetMasterVolume(vol){const mv=
+this.DbToLinear(vol);if(this._masterVolume===mv)return;this._masterVolume=mv;this.PostToDOM("set-master-volume",{"vol":mv})},AddFilterEffect(tagStr,type,freq,detune,q,gain,mix){const typeStr=FILTER_TYPES[type];this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"filter","tags":this._SplitTags(tagStr),"params":[typeStr,freq,detune,q,gain,C3.clamp(mix/100,0,1)]})},AddDelayEffect(tagStr,delay,gain,mix){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"delay",
+"tags":this._SplitTags(tagStr),"params":[delay,this.DbToLinear(gain),C3.clamp(mix/100,0,1)]})},AddFlangerEffect(tagStr,delay,modulation,freq,feedback,mix){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"flanger","tags":this._SplitTags(tagStr),"params":[delay/1E3,modulation/1E3,freq,feedback/100,C3.clamp(mix/100,0,1)]})},AddPhaserEffect(tagStr,freq,detune,q,mod,modfreq,mix){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"phaser","tags":this._SplitTags(tagStr),
+"params":[freq,detune,q,mod,modfreq,C3.clamp(mix/100,0,1)]})},AddConvolutionEffect(tagStr,file,norm,mix){const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(file[0]);if(!info)return;this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"convolution","tags":this._SplitTags(tagStr),"bufferOriginalUrl":file[0],"bufferUrl":info.url,"bufferType":info.type,"params":[norm===0,C3.clamp(mix/100,0,1)]})},AddGainEffect(tagStr,g){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",
+{"type":"gain","tags":this._SplitTags(tagStr),"params":[this.DbToLinear(g)]})},AddStereoPanEffect(tagStr,g){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"stereopan","tags":this._SplitTags(tagStr),"params":[C3.clamp(g/100,-1,1)]})},AddMuteEffect(tagStr){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"gain","tags":this._SplitTags(tagStr),"params":[0]})},AddTremoloEffect(tagStr,freq,mix){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",
+{"type":"tremolo","tags":this._SplitTags(tagStr),"params":[freq,C3.clamp(mix/100,0,1)]})},AddRingModEffect(tagStr,freq,mix){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"ringmod","tags":this._SplitTags(tagStr),"params":[freq,C3.clamp(mix/100,0,1)]})},AddDistortionEffect(tagStr,threshold,headroom,drive,makeupgain,mix){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"distortion","tags":this._SplitTags(tagStr),"params":[this.DbToLinearNoCap(threshold),
+this.DbToLinearNoCap(headroom),drive,this.DbToLinearNoCap(makeupgain),C3.clamp(mix/100,0,1)]})},AddCompressorEffect(tagStr,threshold,knee,ratio,attack,release){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"compressor","tags":this._SplitTags(tagStr),"params":[threshold,knee,ratio,attack/1E3,release/1E3]})},AddAnalyserEffect(tagStr,fftSize,smoothing){this._IncrementEffectCount(tagStr);this.PostToDOM("add-effect",{"type":"analyser","tags":this._SplitTags(tagStr),"params":[fftSize,
+smoothing]})},RemoveEffects(tagStr){const tagArr=this._SplitTags(tagStr);for(const tag of tagArr)this._effectCount.set(tag.toLowerCase(),0);this.PostToDOM("remove-effects",{"tags":tagArr});this._lastFxState={}},SetEffectParameter(tagStr,index,param,value,ramp,time){this.PostToDOM("set-effect-param",{"tags":this._SplitTags(tagStr),"index":Math.floor(index),"param":param,"value":value,"ramp":ramp,"time":time})},SetListenerObject(objectClass){if(!objectClass)return;const inst=objectClass.GetFirstPicked();
+if(!inst||!inst.GetWorldInfo())return;this._listenerInst=inst},SetListenerZ(z){this._listenerPos[2]=z},SetListenerOrientation(fx,fy,fz,ux,uy,uz){this._listenerForwardVec[0]=fx;this._listenerForwardVec[1]=fy;this._listenerForwardVec[2]=-fz;this._listenerUpVec[0]=ux;this._listenerUpVec[1]=uy;this._listenerUpVec[2]=-uz},ScheduleNextPlay(t){this._nextPlayTime=Math.max(t,0)},UnloadAudio(file){const isMusic=file[1];const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(file[0]);if(!info)return;
+this.PostToDOM("unload",{"url":info.url,"type":info.type,"isMusic":isMusic})},UnloadAudioByName(folder,filename){const isMusic=folder===1;const info=this._runtime.GetAssetManager().GetProjectAudioFileUrl(filename)||this._remoteUrls.get(filename.toLowerCase());if(!info)return;this.PostToDOM("unload",{"url":info.url,"type":info.type,"isMusic":isMusic})},UnloadAll(){this.PostToDOM("unload-all")},AddRemoteURL(url,type,name){this._remoteUrls.set(name.toLowerCase(),{url,type})}}}
+{const C3=self.C3;C3.Plugins.Audio.Exps={Duration(tagStr){const a=this._GetFirstAudioStateByTags(tagStr);return a?a["duration"]:0},PlaybackTime(tagStr){const a=this._GetFirstAudioStateByTags(tagStr);return a?a["playbackTime"]:0},PlaybackRate(tagStr){const a=this._GetFirstAudioStateByTags(tagStr);return a?a["playbackRate"]:0},Volume(tagStr){const a=this._GetFirstAudioStateByTags(tagStr);return a?this.LinearToDb(a["volume"]):0},MasterVolume(){return this.LinearToDb(this._masterVolume)},EffectCount(tag){return this._effectCount.get(tag.toLowerCase())||
+0},AnalyserFreqBinCount(tagStr,index){const o=this.GetAnalyserData(tagStr,Math.floor(index));return o?o["binCount"]:0},AnalyserFreqBinAt(tagStr,index,bin){const o=this.GetAnalyserData(tagStr,Math.floor(index));if(!o)return 0;bin=Math.floor(bin);if(bin<0||bin>=o["binCount"])return 0;return o["freqBins"][bin]},AnalyserPeakLevel(tagStr,index){const o=this.GetAnalyserData(tagStr,Math.floor(index));return o?o["peak"]:0},AnalyserRMSLevel(tagStr,index){const o=this.GetAnalyserData(tagStr,Math.floor(index));
+return o?o["rms"]:0},SampleRate(){return this._sampleRate},CurrentTime(){if(self["C3_GetAudioContextCurrentTime"])return self["C3_GetAudioContextCurrentTime"]();else return performance.now()/1E3},OutputLatency(){return this._outputLatency}}};
 
 }
 
@@ -4636,6 +4753,101 @@ value){switch(index){case ENABLE:this.SetEnabled(value);break}}GetDebuggerProper
 }
 
 {
+'use strict';{const C3=self.C3;C3.Behaviors.Tween=class TweenBehavior extends C3.SDKBehaviorBase{constructor(opts){super(opts)}Release(){super.Release()}}}{const C3=self.C3;C3.Behaviors.Tween.Type=class TweenType extends C3.SDKBehaviorTypeBase{constructor(behaviorType){super(behaviorType)}Release(){super.Release()}OnCreate(){}}}
+{const C3=self.C3;const NAMESPACE=C3.Behaviors.Tween;const ENABLED=0;NAMESPACE.Instance=class TweenInstance extends C3.SDKBehaviorInstanceBase{constructor(behInst,properties){super(behInst);this._allowMultiple=false;this._enabled=true;if(properties){this._allowMultiple=false;this._enabled=!!properties[ENABLED]}this._activeTweens=new Map;this._disabledTweens=[];this._waitingForReleaseTweens=new Map;this._finishingTween=null;this._activeTweensJson=null;this._disabledTweensJson=null;this._waitingForReleaseTweensJson=
+null;this._finishingTweenName="";this._triggerTweens=[];this._afterLoad=e=>this._OnAfterLoad();this.GetRuntime().Dispatcher().addEventListener("afterload",this._afterLoad)}Release(){this.GetRuntime().Dispatcher().removeEventListener("afterload",this._afterLoad);this._afterLoad=null;if(this._finishingTween){this.ReleaseAndCompleteTween(this._finishingTween);this._finishingTween=null}this.ReleaseAndCompleteTweens();this._tweens=null;this.ClearDisabledList();this._disabledTweens=null;this._ReleaseWaitingTweens();
+this._waitingForReleaseTweens=null;this._triggerTweens=null;super.Release()}PushTriggerTween(tween){this._triggerTweens.push(tween)}PopTriggerTween(){this._triggerTweens.pop()}GetTriggerTween(){return this._triggerTweens[this._triggerTweens.length-1]}SetEnabled(e){this._enabled=!!e;if(e){if(this._waitingForReleaseTweens&&this._waitingForReleaseTweens.size)this._StartTicking2()}else this._StopTicking2();for(const tween of this.AllTweens())if(e){if(this.IsInDisabledList(tween))tween.Resume()}else{if(tween.IsPlaying()||
+tween.IsScheduled())this.AddToDisabledList(tween);tween.Stop()}if(e)this.ClearDisabledList()}IsEnabled(){return this._enabled}AddToDisabledList(tween){this._disabledTweens.push(tween)}IsInDisabledList(tween){return this._disabledTweens.includes(tween)}ClearDisabledList(){C3.clearArray(this._disabledTweens)}GetFinishingTween(){return this._finishingTween}IsInstanceValid(){const inst=this.GetObjectInstance();if(!inst)return false;return!inst.IsDestroyed()}GetTween(tags,property,includeWaitingForRelease=
+false){const tweens=property?this.PropertyTweens(property,includeWaitingForRelease):this.AllTweens(includeWaitingForRelease);if(!tweens||!tweens.length)return;for(const tween of tweens)if(tween.HasTags(tags))return tween}GetTweenIncludingWaitingForRelease(tags,property){return this.GetTween(tags,property,true)}*GetTweens(tags,property,includeWaitingForRelease=false){const tweens=property?this.PropertyTweens(property,includeWaitingForRelease):this.AllTweens(includeWaitingForRelease);if(tweens&&tweens.length)for(const tween of tweens)if(tween.HasTags(tags))yield tween}*GetTweensIncludingWaitingForRelease(tags,
+property){yield*this.GetTweens(tags,property,true)}PropertyTweens(property,includeWaitingForRelease){if(includeWaitingForRelease){let active=this._activeTweens.get(property);let waitingForRelease=this._waitingForReleaseTweens.get(property);if(!active)active=[];if(!waitingForRelease)waitingForRelease=[];return active.concat(waitingForRelease).filter(t=>t).filter(t=>!t.IsReleased())}else{let active=this._activeTweens.get(property);if(!active)active=[];return active.filter(t=>t).filter(t=>!t.IsReleased())}}AllTweens(includeWaitingForRelease){if(includeWaitingForRelease){const active=
+[...this._activeTweens.values()].flat();const waitingForRelease=[...this._waitingForReleaseTweens.values()].flat();return active.concat(waitingForRelease).filter(t=>t).filter(t=>!t.IsReleased())}else{const active=[...this._activeTweens.values()].flat();return active.filter(t=>t).filter(t=>!t.IsReleased())}}AllTweensIncludingWaitingForRelease(){return this.AllTweens(true)}SaveToJson(mode="full"){return{"s":false,"e":!!this._enabled,"at":this._SaveActiveTweensToJson(),"dt":this._SaveDisabledTweensToJson(),
+"wt":this._SaveWaitingForReleaseTweensToJson(),"ft":this._SaveFinishingTweenToJson()}}LoadFromJson(o,mode="full"){if(!o)return;this._activeTweensJson=o["at"];this._disabledTweensJson=o["dt"];this._waitingForReleaseTweensJson=o["wt"];this._finishingTweenName=o["ft"];this._allowMultiple=false;this._enabled=!!o["e"];if(mode==="state")this._OnAfterLoad()}_OnAfterLoad(){const timelineManager=this.GetRuntime().GetTimelineManager();this._PopulateTweenMap(this._activeTweensJson,this._activeTweens,timelineManager);
+if(this._disabledTweensJson){C3.clearArray(this._disabledTweens);for(const tweenName of this._disabledTweensJson)this._PopulateTweenArray(this._disabledTweens,tweenName,timelineManager)}this._PopulateTweenMap(this._waitingForReleaseTweensJson,this._waitingForReleaseTweens,timelineManager);this._finishingTween=this._GetTween(this._finishingTweenName,timelineManager);if(this._enabled){if(this._waitingForReleaseTweens&&this._waitingForReleaseTweens.size)this._StartTicking2()}else this._StopTicking2()}_PopulateTweenMap(restoreJson,
+map,timelineManager){if(!restoreJson)return;for(const property in restoreJson){let tweens=map.get(property);tweens?C3.clearArray(tweens):tweens=[];const tweensJson=restoreJson[property];for(const tweenJson of tweensJson){const success=this._PopulateTweenArray(tweens,tweenJson["name"],timelineManager);if(!success){const tween=C3.TweenState.Build({runtime:this.GetRuntime(),json:tweenJson});C3.TweenState.SetInstanceUID(tween,this.GetObjectInstance().GetUID());tween.AddCompletedCallback(tween=>this._FinishTriggers(tween));
+timelineManager.AddScheduledTimeline(tween);this._PopulateTweenArray(tweens,tween,timelineManager)}else this._LoadTweenFromJson(tweenJson["name"],tweenJson,timelineManager)}map.set(property,tweens)}}_GetTween(name,timelineManager){return timelineManager.GetScheduledOrPlayingTimelineByName(name)}_PopulateTweenArray(collection,tweenOrName,timelineManager){if(typeof tweenOrName==="string"){const tween=this._GetTween(tweenOrName,timelineManager);if(tween)return!!collection.push(tween)}else return!!collection.push(tweenOrName);
+return false}_LoadTweenFromJson(tweenOrName,tweenJson,timelineManager){if(typeof tweenOrName==="string"){const tween=this._GetTween(tweenOrName,timelineManager);if(tween){tween._LoadFromJson(tweenJson);C3.TweenState.SetInstanceUID(tween,this.GetObjectInstance().GetUID())}}else{tweenOrName._LoadFromJson(tweenJson);C3.TweenState.SetInstanceUID(tweenOrName,this.GetObjectInstance().GetUID())}}_SaveActiveTweensToJson(){const ret={};for(const [property,tweens]of this._activeTweens)ret[property]=tweens.filter(t=>
+!t.IsReleased()).map(t=>t._SaveToJson());return ret}_SaveDisabledTweensToJson(){return this._disabledTweens.filter(t=>!t.IsReleased()).map(t=>t.GetName())}_SaveWaitingForReleaseTweensToJson(){const ret={};for(const [property,tweens]of this._waitingForReleaseTweens)ret[property]=tweens.map(tween=>tween._SaveToJson());return ret}_SaveFinishingTweenToJson(){return this._finishingTween?this._finishingTween.GetName():""}Tick2(){this._ReleaseWaitingTweens()}CreateTween(args){const propertyTracksConfig=
+NAMESPACE.Config.GetPropertyTracksConfig(args.property,args.startValue,args.endValue,args.ease,args.resultMode,this.GetObjectInstance());const tweenId=NAMESPACE.Maps.GetPropertyFromIndex(args.property);if(!NAMESPACE.Maps.IsValueId(tweenId))this.ReleaseTweens(args.property);const tween=C3.TweenState.Build({runtime:this.GetRuntime(),id:tweenId,tags:args.tags,time:args.time,instance:this.GetObjectInstance(),releaseOnComplete:!!args.releaseOnComplete,loop:!!args.loop,pingPong:!!args.pingPong,repeatCount:args.repeatCount,
+initialValueMode:args.initialValueMode,propertyTracksConfig:propertyTracksConfig});tween.AddCompletedCallback(tween=>this._FinishTriggers(tween));this._AddTween(tween,args.property);return tween}_MaybeRemoveFromActiveTweenMap(tween){const id=tween.GetId();if(this._activeTweens.has(id)){const tweenArray=this._activeTweens.get(id);if(tweenArray){const index=tweenArray.indexOf(tween);if(index!==-1)tweenArray.splice(index,1)}}}ReleaseTween(tween,complete=false){this._MaybeRemoveFromActiveTweenMap(tween);
+if(tween.IsReleased())return;if(this._IsInWaitingList(tween))return;tween.Stop(complete);this._AddToWaitingList(tween)}ReleaseTweens(indexProperty,complete=false){if(C3.IsFiniteNumber(indexProperty)){const stringProperty=NAMESPACE.Maps.GetPropertyFromIndex(indexProperty);if(!this._activeTweens.has(stringProperty))return;const tweenArray=this._activeTweens.get(stringProperty);const finishingTween=this.GetFinishingTween();for(const tween of tweenArray){if(tween===finishingTween)continue;if(tween.IsReleased())continue;
+if(this._IsInWaitingList(tween))continue;tween.Stop(complete);tween.Release()}C3.clearArray(tweenArray)}else{const finishingTween=this.GetFinishingTween();for(const tween of this.AllTweens()){if(tween===finishingTween)continue;if(tween.IsReleased())continue;if(this._IsInWaitingList(tween))continue;tween.Stop(complete);tween.Release()}for(const property of this._activeTweens.keys()){C3.clearArray(this._activeTweens.get(property));this._activeTweens.delete(property)}this._activeTweens.clear()}}ReleaseAndCompleteTween(tween){this.ReleaseTween(tween,
+true)}ReleaseAndCompleteTweens(){this.ReleaseTweens(NaN,true)}GetPropertyValueByIndex(index){switch(index){case ENABLED:return this._enabled}}SetPropertyValueByIndex(index,value){switch(index){case ENABLED:this._enabled=!!value;break}}_GetBehaviorType(tween){const instance=tween.GetInstance();const behaviorInstances=instance.GetBehaviorInstances();for(const behaviorInstance of behaviorInstances){const behaviorType=behaviorInstance.GetBehaviorType();if(behaviorType.GetInstanceSdkCtor()===this.constructor)return behaviorType}}Trigger(method,
+runtime,inst,behaviorType){if(this._runtime)return super.Trigger(method);else return runtime.Trigger(method,inst,behaviorType)}_FinishTriggers(tween){this._finishingTween=tween;NAMESPACE.Cnds.SetFinishingTween(tween);let instance;let runtime;if(!this.GetRuntime()){instance=tween.GetInstance();if(!instance)return;if(instance&&instance.IsDestroyed())return;runtime=instance.GetRuntime();const behaviorType=this._GetBehaviorType(tween);this.Trigger(NAMESPACE.Cnds.OnTweensFinished,runtime,instance,behaviorType);
+this.Trigger(NAMESPACE.Cnds.OnAnyTweensFinished,runtime,instance,behaviorType);tween.Stop()}else{instance=this._inst;runtime=this._runtime;this.Trigger(NAMESPACE.Cnds.OnTweensFinished);this.Trigger(NAMESPACE.Cnds.OnAnyTweensFinished);this.ReleaseTween(tween)}this._finishingTween=null;NAMESPACE.Cnds.SetFinishingTween(null);if(tween.GetDestroyInstanceOnComplete())runtime.DestroyInstance(instance)}_AddTween(tween,indexProperty){const stringProperty=NAMESPACE.Maps.GetPropertyFromIndex(indexProperty);
+if(!this._activeTweens.has(stringProperty))this._activeTweens.set(stringProperty,[]);const tweenArray=this._activeTweens.get(stringProperty);tweenArray.push(tween)}_AddToWaitingList(tween){const id=tween.GetId();if(!this._waitingForReleaseTweens.has(id))this._waitingForReleaseTweens.set(id,[]);this._waitingForReleaseTweens.get(id).push(tween);if(!this.IsTicking2())this._StartTicking2()}_IsInWaitingList(tween){const id=tween.GetId();if(!this._waitingForReleaseTweens.has(id))return false;return this._waitingForReleaseTweens.get(id).includes(tween)}_ReleaseWaitingTweens(){if(!this._waitingForReleaseTweens.size)return;
+for(const tweenArray of this._waitingForReleaseTweens.values()){for(const tween of tweenArray){if(tween.IsReleased())continue;tween.Release()}C3.clearArray(tweenArray)}this._waitingForReleaseTweens.clear();if(this.IsTicking2())this._StopTicking2()}GetDebuggerProperties(){const prefix="behaviors.tween";return[{title:"$"+this.GetBehaviorType().GetName(),properties:[{name:prefix+".properties.enabled.name",value:this.IsEnabled(),onedit:v=>this.SetEnabled(v)}]}]}GetScriptInterfaceClass(){return self.ITweenBehaviorInstance}}}
+{const C3=self.C3;let finishingTween=null;C3.Behaviors.Tween.Cnds={OnAnyTweenLoop(){return true},OnTweensLoop(tags){const tween=this.GetTriggerTween();if(!tween)return false;return tween.HasTags(tags)},OnAnyTweenPingPong(pingPongState){const tween=this.GetTriggerTween();if(!tween)return false;if(tween.GetPingPongState()===pingPongState)return true;else if(pingPongState===2)return true;return false},OnTweensPingPong(tags,pingPongState){const tween=this.GetTriggerTween();if(!tween)return false;if(tween.GetPingPongState()===
+pingPongState)return tween.HasTags(tags);else if(pingPongState===2)return tween.HasTags(tags);return false},SetFinishingTween(tween){finishingTween=tween},OnTweensFinished(tags){return finishingTween.HasTags(tags)},OnAnyTweensFinished(){return true},IsPlaying(tags){const tweens=[...this.GetTweensIncludingWaitingForRelease(tags)];if(!tweens)return false;if(!tweens.length)return false;return tweens.some(C3.TweenState.IsPlaying)},IsAnyPlaying(){const tweens=[...this.AllTweensIncludingWaitingForRelease()];
+if(!tweens)return false;if(!tweens.length)return false;return tweens.some(C3.TweenState.IsPlaying)},IsPaused(tags){const tweens=[...this.GetTweensIncludingWaitingForRelease(tags)];if(!tweens)return false;if(!tweens.length)return false;return tweens.some(C3.TweenState.IsPaused)},IsAnyPaused(){const tweens=[...this.AllTweensIncludingWaitingForRelease()];if(!tweens)return false;if(!tweens.length)return false;return tweens.some(C3.TweenState.IsPaused)},IsPingPong(tags,pingPongState){const tweens=[...this.GetTweensIncludingWaitingForRelease(tags)];
+if(!tweens)return false;if(!tweens.length)return false;if(pingPongState===0)return tweens.some(C3.TweenState.IsPing);else if(pingPongState===1)return tweens.some(C3.TweenState.IsPong);return false},IsAnyPingPong(pingPongState){const tweens=[...this.AllTweensIncludingWaitingForRelease()];if(!tweens)return false;if(!tweens.length)return false;if(pingPongState===0)return tweens.some(C3.TweenState.IsPing);else if(pingPongState===1)return tweens.some(C3.TweenState.IsPong);return false}}}
+{const C3=self.C3;const Ease=self.Ease;const NAMESPACE=C3.Behaviors.Tween;NAMESPACE.Acts={SetEnabled(enable){this.SetEnabled(!!enable)},async TweenOneProperty(...args){if(!this.IsEnabled()||!this.IsInstanceValid())return;const tween=this.CreateTween(NAMESPACE.TweenArguments.OneProperty(this,...args));if(tween.Play())await tween.GetPlayPromise()},async TweenTwoProperties(...args){if(!this.IsEnabled()||!this.IsInstanceValid())return;const tween=this.CreateTween(NAMESPACE.TweenArguments.TwoProperties(this,
+...args));if(tween.Play())await tween.GetPlayPromise()},async TweenValue(...args){if(!this.IsEnabled()||!this.IsInstanceValid())return;const tween=this.CreateTween(NAMESPACE.TweenArguments.ValueProperty(this,...args));if(tween.Play())await tween.GetPlayPromise()},PauseTweens(tags){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.GetTweens(tags))tween.Stop()},PauseAllTweens(){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.AllTweens())tween.Stop()},
+ResumeTweens(tags){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.GetTweens(tags))tween.Resume()},ResumeAllTweens(){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.AllTweens())tween.Resume()},StopTweens(tags){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.GetTweens(tags))this.ReleaseTween(tween)},StopAllTweens(){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.AllTweens())this.ReleaseTween(tween)},
+SetOnePropertyTweensEndValue(tags,property,endValue){if(!this.IsEnabled()||!this.IsInstanceValid())return;const propertyName=C3.Behaviors.Tween.Maps.GetSinglePropertyFromIndex(property);for(const tween of this.GetTweens(tags)){tween.BeforeSetEndValues([propertyName]);tween.SetEndValue(endValue,propertyName)}},SetTwoPropertiesTweensEndValue(tags,property,endValueX,endValueY){if(!this.IsEnabled()||!this.IsInstanceValid())return;const properties=C3.Behaviors.Tween.Maps.GetRealProperties(property);for(const tween of this.GetTweens(tags)){tween.BeforeSetEndValues(properties);
+tween.SetEndValue(endValueX,properties[0]);tween.SetEndValue(endValueY,properties[1])}},SetValuePropertyTweensStartValue(tags,startValue){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.GetTweens(tags,"value"))tween.SetStartValue(startValue,"value")},SetValuePropertyTweensEndValue(tags,endValue){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.GetTweens(tags,"value")){tween.BeforeSetEndValues(["value"]);tween.SetEndValue(endValue,"value")}},
+SetTweensEase(tags,easeIndex){if(!this.IsEnabled()||!this.IsInstanceValid())return;const ease=Ease.GetEaseFromIndex(easeIndex);for(const tween of this.GetTweens(tags))tween.SetEase(ease)},SetAllTweensEase(easeIndex){if(!this.IsEnabled()||!this.IsInstanceValid())return;const ease=Ease.GetEaseFromIndex(easeIndex);for(const tween of this.AllTweens())tween.SetEase(ease)},SetTweensTime(tags,time){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.GetTweens(tags))tween.SetTime(time)},
+SetAllTweensTime(time){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.AllTweens())tween.SetTime(time)},SetTweensPlaybackRate(tags,rate){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.GetTweens(tags))tween.SetPlaybackRate(rate)},SetAllTweensPlaybackRate(rate){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.AllTweens())tween.SetPlaybackRate(rate)},SetTweensDestroyOnComplete(tags,destroyOnComplete){if(!this.IsEnabled()||
+!this.IsInstanceValid())return;for(const tween of this.GetTweens(tags))tween.SetDestroyInstanceOnComplete(!!destroyOnComplete)},SetAllTweensDestroyOnComplete(destroyOnComplete){if(!this.IsEnabled()||!this.IsInstanceValid())return;for(const tween of this.AllTweens())tween.SetDestroyInstanceOnComplete(!!destroyOnComplete)}}}
+{const C3=self.C3;C3.Behaviors.Tween.Exps={Time(tags){const tween=this.GetTweenIncludingWaitingForRelease(tags);if(!tween)return 0;return tween.GetTime()},Progress(tags){const tween=this.GetTweenIncludingWaitingForRelease(tags);if(!tween)return 0;return tween.GetTime()/tween.GetTotalTime()},PlaybackRate(tags){const tween=this.GetTweenIncludingWaitingForRelease(tags);if(!tween)return 0;return tween.GetPlaybackRate()},Value(tags){const tween=this.GetTweenIncludingWaitingForRelease(tags,"value");if(!tween)return 0;
+return tween.GetPropertyTrack("value").GetSourceAdapterValue()},Tags(){let tween=this.GetFinishingTween();if(tween)return tween.GetStringTags();tween=this.GetTriggerTween();if(tween)return tween.GetStringTags();return""}}};
+
+}
+
+{
+'use strict';const C3=self.C3;const Ease=self.Ease;const PAIR_PROPERTIES=["position","size","scale"];const SINGLE_PROPERTIES=["offsetX","offsetY","offsetWidth","offsetHeight","offsetAngle","offsetOpacity","offsetColor","offsetZElevation","offsetScaleX","offsetScaleY"];const VALUE_PROPERTIES=["value"];const PROPERTY_INDEX_TO_NAME=[].concat(PAIR_PROPERTIES).concat(SINGLE_PROPERTIES).concat(VALUE_PROPERTIES);
+const PROPERTY_PAIR_TO_REAL_PROPERTIES={"position":["offsetX","offsetY"],"size":["offsetWidth","offsetHeight"],"scale":["offsetScaleX","offsetScaleY"]};const ALL_REAL_PROPERTIES=Object.assign({},PROPERTY_INDEX_TO_NAME.reduce((o,key)=>Object.assign({},o,{[key]:[key]}),{}),PROPERTY_PAIR_TO_REAL_PROPERTIES);
+C3.Behaviors.Tween.Maps=class Maps{constructor(){}static GetEases(){return[...Ease.GetRuntimeEaseNames()]}static GetEaseFromIndex(index){return[...Ease.GetRuntimeEaseNames()][index]}static GetPropertyFromIndex(index){return PROPERTY_INDEX_TO_NAME[index]}static GetPropertyIndexFromName(name){return PROPERTY_INDEX_TO_NAME.indexOf(name)}static GetPairPropertyFromIndex(index){return PAIR_PROPERTIES[index]}static GetSinglePropertyFromIndex(index){return SINGLE_PROPERTIES[index]}static GetValuePropertyFromIndex(index){return VALUE_PROPERTIES[index]}static GetPairProperties(pairId){return PROPERTY_PAIR_TO_REAL_PROPERTIES[pairId]}static GetRealProperties(id){if(C3.IsString(id))return ALL_REAL_PROPERTIES[id];else return ALL_REAL_PROPERTIES[PROPERTY_INDEX_TO_NAME[id]]}static IsPairId(id){return!!PROPERTY_PAIR_TO_REAL_PROPERTIES[id]}static IsColorId(id){return id===
+"offsetColor"}static IsAngleId(id){return id==="offsetAngle"}static IsOpacityId(id){return id==="offsetOpacity"}static IsValueId(id){return id==="value"}};
+
+}
+
+{
+'use strict';const C3=self.C3;const NAMESPACE=C3.Behaviors.Tween;const TWEEN_CONFIGURATIONS=new Map;
+NAMESPACE.Config=class Config{constructor(){}static GetPropertyTracksConfig(property,startValue,endValue,ease,resultMode,instance){if(TWEEN_CONFIGURATIONS.size===0)this._CreateConfigObjects();const propertyType=NAMESPACE.PropertyTypes.Pick(property);let config=TWEEN_CONFIGURATIONS.get(propertyType);if(C3.IsFiniteNumber(property))property=NAMESPACE.Maps.GetPropertyFromIndex(property);return this._GetConfig(config,property,startValue,endValue,ease,resultMode,instance)}static TransformValue(property,
+value){const configFunctionObject=C3.Behaviors.Tween.GetPropertyTracksConfig(property);return configFunctionObject.valueGetter(value)}static _CreateConfigObjects(){const types=NAMESPACE.PropertyTypes;const getters=NAMESPACE.ValueGetters;this._AddConfigObject(types.PAIR,this._GetPairConfig,getters._GetPropertyValue);this._AddConfigObject(types.COLOR,this._GetColorConfig,getters._GetColorPropertyValue);this._AddConfigObject(types.ANGLE,this._GetAngleConfig,getters._GetPropertyAngleValue);this._AddConfigObject(types.VALUE,
+this._GetValueConfig,getters._GetPropertyValue);this._AddConfigObject(types.OTHER,this._GetCommonConfig,getters._GetPropertyValue)}static _AddConfigObject(name,configGetter,valueGetter){TWEEN_CONFIGURATIONS.set(name,this._CreateConfigObject(name,configGetter,valueGetter))}static _CreateConfigObject(name,configFunc,valueGetter){return{name:name,configFunc:configFunc,valueGetter:valueGetter}}static _GetConfig(config,property,startValue,endValue,ease,resultMode,instance){return config.configFunc(property,
+config.valueGetter(startValue),config.valueGetter(endValue),ease,resultMode,instance)}static _GetPairConfig(property,startValues,endValues,ease,resultMode,instance){const properties=NAMESPACE.Maps.GetPairProperties(property);return properties.map((property,index)=>{return{sourceId:"world-instance",property:property,type:"float",valueType:"numeric",startValue:startValues[index],endValue:endValues[index],ease:NAMESPACE.Maps.GetEaseFromIndex(ease),resultMode:resultMode}})}static _GetColorConfig(property,
+startValue,endValue,ease,resultMode,instance){if(C3.Plugins.Text&&instance.GetPlugin()instanceof C3.Plugins.Text)return{sourceId:"plugin",sourceArgs:[7],property:"color",type:"color",valueType:"color",startValue:startValue,endValue:endValue,ease:NAMESPACE.Maps.GetEaseFromIndex(ease),resultMode:resultMode};else return{sourceId:"world-instance",property:property,type:"color",valueType:"color",startValue:startValue,endValue:endValue,ease:NAMESPACE.Maps.GetEaseFromIndex(ease),resultMode:resultMode}}static _GetAngleConfig(property,
+startValue,endValue,ease,resultMode,instance){return{sourceId:"world-instance",property:property,type:"angle",valueType:"angle",startValue:startValue,endValue:endValue,ease:NAMESPACE.Maps.GetEaseFromIndex(ease),resultMode:resultMode}}static _GetCommonConfig(property,startValue,endValue,ease,resultMode,instance){return{sourceId:"world-instance",property:property,type:"float",valueType:"numeric",startValue:startValue,endValue:endValue,ease:NAMESPACE.Maps.GetEaseFromIndex(ease),resultMode:resultMode}}static _GetValueConfig(property,
+startValue,endValue,ease,resultMode,instance){return{sourceId:"value",property:property,type:"float",valueType:"numeric",startValue:startValue,endValue:endValue,ease:NAMESPACE.Maps.GetEaseFromIndex(ease),resultMode:resultMode}}};
+
+}
+
+{
+'use strict';const C3=self.C3;const NAMESPACE=C3.Behaviors.Tween;const COMMON_FIXED_ARGS={resultMode:"absolute"};const COMMON_VARIABLE_ARGS=Object.assign({},COMMON_FIXED_ARGS,{tags:"",property:"",time:0,ease:0,releaseOnComplete:0,loop:false,pingPong:false,repeatCount:1});const ONE_PROPERTY_ARGS=Object.assign({},COMMON_VARIABLE_ARGS,{initialValueMode:"current-state",startValue:0,endValue:0});
+const TWO_PROPERTIES_ARGS=Object.assign({},COMMON_VARIABLE_ARGS,{initialValueMode:"current-state",startValue:[0,0],endValue:[0,0]});const COLOR_PROPERTY_ARGS=Object.assign({},COMMON_VARIABLE_ARGS,{initialValueMode:"current-state",startValue:[0,0,0],endValue:[0,0,0]});const VALUE_PROPERTY_ARGS=Object.assign({},ONE_PROPERTY_ARGS,{initialValueMode:"start-value"});const X=0;const Y=1;const R=0;const G=1;const B=2;
+NAMESPACE.TweenArguments=class TweenArguments{constructor(){}static _SetCommonProperties(argsObject,tags,time,ease,destroyOnComplete,loop,pingPong,repeatCount){argsObject.tags=tags;argsObject.time=time;argsObject.ease=ease;argsObject.releaseOnComplete=destroyOnComplete;argsObject.loop=loop;argsObject.pingPong=pingPong;argsObject.repeatCount=repeatCount}static OneProperty(inst,tags,property,endValue,time,ease,destroyOnComplete,loop,pingPong,repeatCount){const propertyName=typeof property==="string"?
+property:NAMESPACE.Maps.GetSinglePropertyFromIndex(property);const args=NAMESPACE.Maps.IsColorId(propertyName)?COLOR_PROPERTY_ARGS:ONE_PROPERTY_ARGS;this._SetCommonProperties(args,tags,time,ease,destroyOnComplete,loop,pingPong,repeatCount);if(NAMESPACE.Maps.IsColorId(propertyName)){COLOR_PROPERTY_ARGS.endValue[R]=C3.GetRValue(endValue);COLOR_PROPERTY_ARGS.endValue[G]=C3.GetGValue(endValue);COLOR_PROPERTY_ARGS.endValue[B]=C3.GetBValue(endValue);COLOR_PROPERTY_ARGS.property=NAMESPACE.Maps.GetPropertyIndexFromName(propertyName)}else if(NAMESPACE.Maps.IsOpacityId(propertyName))ONE_PROPERTY_ARGS.endValue=
+endValue/100;else ONE_PROPERTY_ARGS.endValue=endValue;args.property=NAMESPACE.Maps.GetPropertyIndexFromName(propertyName);return args}static TwoProperties(inst,tags,property,endValueX,endValueY,time,ease,destroyOnComplete,loop,pingPong,repeatCount){this._SetCommonProperties(TWO_PROPERTIES_ARGS,tags,time,ease,destroyOnComplete,loop,pingPong,repeatCount);const pairName=typeof property==="string"?property:NAMESPACE.Maps.GetPairPropertyFromIndex(property);TWO_PROPERTIES_ARGS.endValue[X]=endValueX;TWO_PROPERTIES_ARGS.endValue[Y]=
+endValueY;TWO_PROPERTIES_ARGS.property=NAMESPACE.Maps.GetPropertyIndexFromName(pairName);return TWO_PROPERTIES_ARGS}static ValueProperty(inst,tags,startValue,endValue,time,ease,destroyOnComplete,loop,pingPong,repeatCount){this._SetCommonProperties(VALUE_PROPERTY_ARGS,tags,time,ease,destroyOnComplete,loop,pingPong,repeatCount);VALUE_PROPERTY_ARGS.startValue=startValue;VALUE_PROPERTY_ARGS.endValue=endValue;VALUE_PROPERTY_ARGS.property=NAMESPACE.Maps.GetPropertyIndexFromName("value");return VALUE_PROPERTY_ARGS}};
+
+}
+
+{
+'use strict';const C3=self.C3;const NAMESPACE=C3.Behaviors.Tween;const TYPE_CHECK_OBJECTS=[];
+NAMESPACE.PropertyTypes=class PropertyTypes{constructor(){}static Pick(property){if(TYPE_CHECK_OBJECTS.length===0){const arr=TYPE_CHECK_OBJECTS;arr.push({checkFunc:NAMESPACE.Maps.IsPairId,result:this.PAIR});arr.push({checkFunc:NAMESPACE.Maps.IsColorId,result:this.COLOR});arr.push({checkFunc:NAMESPACE.Maps.IsAngleId,result:this.ANGLE});arr.push({checkFunc:NAMESPACE.Maps.IsValueId,result:this.VALUE});arr.push({checkFunc:()=>true,result:this.OTHER})}if(C3.IsFiniteNumber(property))property=C3.Behaviors.Tween.Maps.GetPropertyFromIndex(property);
+for(const propertyTypeFunctionObject of TYPE_CHECK_OBJECTS)if(propertyTypeFunctionObject.checkFunc(property))return propertyTypeFunctionObject.result}static get PAIR(){return"pair"}static get COLOR(){return"color"}static get ANGLE(){return"angle"}static get VALUE(){return"value"}static get OTHER(){return"other"}};
+
+}
+
+{
+'use strict';const C3=self.C3;const NAMESPACE=C3.Behaviors.Tween;NAMESPACE.ValueGetters=class ValueGetters{constructor(){}static _GetPropertyAngleValue(value){const r=C3.toRadians(parseFloat(value));return C3.clampAngle(r)}static _GetColorPropertyValue(value){return value.slice(0)}static _GetPropertyValue(value){return value}};
+
+}
+
+{
+'use strict';const C3=self.C3;const C3X=self.C3X;const IBehaviorInstance=self.IBehaviorInstance;const Ease=self.Ease;const NAMESPACE=C3.Behaviors.Tween;const map=new WeakMap;
+const TWEEN_PROPERTIES=new Map([["x",{name:"offsetX",type:"one"}],["y",{name:"offsetY",type:"one"}],["width",{name:"offsetWidth",type:"one"}],["height",{name:"offsetHeight",type:"one"}],["angle",{name:"offsetAngle",type:"one"}],["opacity",{name:"offsetOpacity",type:"one"}],["color",{name:"offsetColor",type:"color"}],["z-elevation",{name:"offsetZElevation",type:"one"}],["x-scale",{name:"offsetScaleX",type:"one"}],["y-scale",{name:"offsetScaleY",type:"one"}],["position",{name:"position",type:"two"}],
+["size",{name:"size",type:"two"}],["scale",{name:"scale",type:"two"}],["value",{name:"value",type:"value"}]]);function getIndexForEase(ease){C3X.RequireString(ease);const easeInternalName=Ease.ToInternal(ease);let easeIndex;if(easeInternalName)easeIndex=Ease.GetIndexForEase(easeInternalName,null);else easeIndex=Ease.GetIndexForEase(ease,null);if(easeIndex===-1)throw new Error(`invalid ease name '${ease}'`);return easeIndex}
+const TWEEN_OPTS={tags:"",destroyOnComplete:false,loop:false,pingPong:false,repeatCount:1,startValue:0};const I_TWEEN_OPTS={easeToIndexFunc:getIndexForEase};function ValidateTags(tags,isOptional=false){if(isOptional&&(typeof tags==="undefined"||tags===null))return;if(typeof tags!=="string"&&!Array.isArray(tags))throw new Error("invalid tags");}
+self.ITweenBehaviorInstance=class ITweenBehaviorInstance extends IBehaviorInstance{constructor(){super();map.set(this,IBehaviorInstance._GetInitInst().GetSdkInstance())}startTween(prop,endValue,time,ease,opts){const inst=map.get(this);if(!inst.IsEnabled()||!inst.IsInstanceValid())return null;const info=TWEEN_PROPERTIES.get(prop);if(!info)throw new Error("invalid tween property");if(info.type==="one"||info.type==="value")C3X.RequireNumber(endValue);else{C3X.RequireArray(endValue);if(info.type==="two"){C3X.RequireNumber(endValue[0]);
+C3X.RequireNumber(endValue[1])}else if(info.type==="color"){C3X.RequireNumber(endValue[0]);C3X.RequireNumber(endValue[1]);C3X.RequireNumber(endValue[2])}}if(prop==="angle")endValue=C3.toDegrees(endValue);else if(prop==="opacity")endValue*=100;else if(prop==="color")endValue=C3.PackRGBEx(endValue[0],endValue[1],endValue[2]);const easeIndex=getIndexForEase(ease);C3X.RequireFiniteNumber(time);opts=Object.assign({},TWEEN_OPTS,opts);if(info.type==="value")C3X.RequireNumber(opts.startValue);ValidateTags(opts.tags,
+true);let tween;if(info.type==="one"||info.type==="color")tween=inst.CreateTween(NAMESPACE.TweenArguments.OneProperty(inst,opts.tags,info.name,endValue,time,easeIndex,!!opts.destroyOnComplete,!!opts.loop,!!opts.pingPong,opts.repeatCount));else if(info.type==="two")tween=inst.CreateTween(NAMESPACE.TweenArguments.TwoProperties(inst,opts.tags,info.name,endValue[0],endValue[1],time,easeIndex,!!opts.destroyOnComplete,!!opts.loop,!!opts.pingPong,opts.repeatCount));else if(info.type==="value")tween=inst.CreateTween(NAMESPACE.TweenArguments.ValueProperty(inst,
+opts.tags,opts.startValue,endValue,time,easeIndex,!!opts.destroyOnComplete,!!opts.loop,!!opts.pingPong,opts.repeatCount));if(!tween.Play())throw new Error("failed to start tween");return tween.GetITweenState(inst,I_TWEEN_OPTS)}*allTweens(){const inst=map.get(this);for(const tween of inst.AllTweens())yield tween.GetITweenState(inst,I_TWEEN_OPTS)}*tweensByTags(tags){ValidateTags(tags);const inst=map.get(this);for(const tween of inst.GetTweens(tags))yield tween.GetITweenState(inst,I_TWEEN_OPTS)}get isEnabled(){return map.get(this).IsEnabled()}set isEnabled(e){map.get(this).SetEnabled(e)}};
+
+}
+
+{
 const C3 = self.C3;
 self.C3_GetObjectRefTable = function () {
 	return [
@@ -4653,34 +4865,52 @@ self.C3_GetObjectRefTable = function () {
 		C3.Behaviors.jumpthru,
 		C3.Plugins.NinePatch,
 		C3.Plugins.Text,
+		C3.Behaviors.Tween,
 		C3.Plugins.TiledBg,
-		C3.Plugins.CSV,
-		C3.Plugins.System.Cnds.IsGroupActive,
+		C3.Plugins.Particles,
+		C3.Plugins.Audio,
+		C3.Plugins.System.Cnds.CompareVar,
+		C3.Plugins.System.Acts.SetVar,
+		C3.Plugins.System.Acts.AddVar,
+		C3.Plugins.System.Acts.SetBoolVar,
+		C3.Plugins.Sprite.Acts.Destroy,
+		C3.Plugins.Sprite.Acts.SetPos,
 		C3.Plugins.System.Cnds.OnLayoutStart,
+		C3.Plugins.Audio.Acts.Play,
+		C3.Plugins.System.Cnds.IsGroupActive,
 		C3.Plugins.Text.Acts.Destroy,
 		C3.Plugins.NinePatch.Acts.Destroy,
 		C3.Plugins.System.Acts.CreateObject,
-		C3.Plugins.Text.Acts.TypewriterText,
+		C3.Plugins.Text.Acts.SetText,
 		C3.Plugins.Keyboard.Cnds.OnKey,
-		C3.Plugins.Text.Cnds.IsRunningTypewriterText,
+		C3.Plugins.Text.Cnds.IsOnScreen,
 		C3.Plugins.System.Acts.Signal,
-		C3.Plugins.Text.Acts.TypewriterFinish,
 		C3.Plugins.System.Cnds.OnSignal,
-		C3.Plugins.System.Acts.SetBoolVar,
 		C3.Plugins.System.Acts.WaitForSignal,
+		C3.Plugins.System.Acts.SetTimescale,
 		C3.Plugins.System.Acts.SubVar,
 		C3.Plugins.Keyboard.Cnds.IsKeyDown,
 		C3.Plugins.System.Cnds.CompareBoolVar,
 		C3.Behaviors.Platform.Acts.SimulateControl,
 		C3.Plugins.Sprite.Acts.SetMirrored,
+		C3.Plugins.Sprite.Acts.SetAnim,
+		C3.Behaviors.Platform.Cnds.IsMoving,
 		C3.Plugins.Sprite.Acts.SetVisible,
-		C3.Plugins.System.Acts.GoToLayoutByName,
-		C3.Plugins.Sprite.Cnds.OnCollision,
-		C3.Plugins.Sprite.Cnds.CompareInstanceVar,
-		C3.Behaviors.MoveTo.Acts.MoveToPosition,
+		C3.Plugins.TiledBg.Acts.SetVisible,
+		C3.Plugins.Particles.Acts.SetVisible,
+		C3.Plugins.Sprite.Acts.SetOpacity,
 		C3.Plugins.Sprite.Exps.X,
-		C3.Plugins.Sprite.Exps.Y,
 		C3.Plugins.System.Acts.Wait,
+		C3.Plugins.System.Acts.GoToLayoutByName,
+		C3.Plugins.Audio.Acts.FadeVolume,
+		C3.Behaviors.MoveTo.Acts.SetMaxSpeed,
+		C3.Behaviors.MoveTo.Acts.SetEnabled,
+		C3.Behaviors.MoveTo.Acts.MoveToPosition,
+		C3.Plugins.Sprite.Exps.Y,
+		C3.Behaviors.Tween.Acts.TweenOneProperty,
+		C3.Plugins.Sprite.Cnds.OnCollision,
+		C3.Plugins.Audio.Acts.Stop,
+		C3.Plugins.Sprite.Cnds.CompareInstanceVar,
 		C3.Behaviors.MoveTo.Acts.SetAcceleration,
 		C3.Behaviors.MoveTo.Acts.SetDeceleration,
 		C3.Plugins.System.Cnds.For,
@@ -4699,42 +4929,58 @@ self.C3_GetObjectRefTable = function () {
 		C3.Plugins.Mouse.Cnds.IsButtonDown,
 		C3.Plugins.System.Cnds.EveryTick,
 		C3.Plugins.Sprite.Acts.AddInstanceVar,
-		C3.Plugins.Mouse.Cnds.OnRelease,
-		C3.Plugins.Sprite.Acts.StopAnim,
+		C3.Plugins.Particles.Acts.SetRate,
+		C3.Plugins.System.Exps.min,
+		C3.Plugins.TiledBg.Acts.SetTowardPosition,
 		C3.Plugins.Mouse.Exps.X,
 		C3.Plugins.Mouse.Exps.Y,
-		C3.Plugins.System.Exps.min,
-		C3.Plugins.Sprite.Acts.Destroy,
+		C3.Plugins.Mouse.Cnds.OnRelease,
+		C3.Plugins.Sprite.Acts.StopAnim,
+		C3.Plugins.System.Exps.max,
 		C3.Plugins.Mouse.Cnds.OnClick,
 		C3.Plugins.Sprite.Acts.SetAnimFrame,
 		C3.Behaviors.MoveTo.Acts.Stop,
+		C3.Behaviors.Platform.Cnds.IsJumping,
+		C3.Behaviors.Platform.Cnds.IsFalling,
 		C3.Plugins.Sprite.Acts.Spawn,
-		C3.Plugins.Sprite.Acts.SetPos,
 		C3.Plugins.Sprite.Acts.MoveToLayer,
-		C3.Plugins.System.Acts.SetVar,
+		C3.Plugins.TiledBg.Acts.MoveToLayer,
+		C3.Plugins.TiledBg.Acts.MoveToBottom,
+		C3.Plugins.TiledBg.Acts.SetWidth,
+		C3.Plugins.Particles.Acts.MoveToLayer,
+		C3.Plugins.Particles.Acts.MoveToBottom,
+		C3.Plugins.Particles.Acts.SetAngleRandomiser,
+		C3.Plugins.Particles.Acts.SetInitSize,
+		C3.Plugins.Text.Acts.SetSize,
+		C3.Plugins.Text.Acts.SetFontSize,
+		C3.Plugins.Text.Acts.SetFontColor,
+		C3.Plugins.Text.Acts.SetHAlign,
+		C3.Plugins.Text.Acts.SetVAlign,
+		C3.Plugins.Particles.Acts.SetPos,
 		C3.Plugins.TiledBg.Acts.SetSize,
 		C3.Plugins.TiledBg.Exps.Height,
-		C3.Plugins.System.Cnds.CompareVar,
+		C3.Plugins.TiledBg.Acts.SetPos,
 		C3.Plugins.System.Acts.SetLayerOpacity,
 		C3.Behaviors.Sin.Acts.SetPeriod,
 		C3.Behaviors.scrollto.Acts.Shake,
-		C3.Plugins.System.Acts.AddVar,
 		C3.Plugins.Sprite.Cnds.IsVisible,
 		C3.Behaviors.Platform.Acts.SetMaxSpeed,
 		C3.Behaviors.Platform.Acts.SetJumpStrength,
 		C3.Plugins.Sprite.Cnds.IsOutsideLayout,
+		C3.Behaviors.Platform.Cnds.OnLand,
 		C3.Behaviors.MoveTo.Cnds.OnArrived,
 		C3.Behaviors.Turret.Acts.AddTarget,
 		C3.Behaviors.Turret.Acts.SetRateOfFire,
 		C3.Behaviors.Turret.Cnds.OnShoot,
-		C3.Plugins.System.Exps.max,
 		C3.Behaviors.Platform.Cnds.IsOnFloor,
 		C3.Behaviors.MoveTo.Cnds.IsMoving,
 		C3.Behaviors.Turret.Acts.SetEnabled,
-		C3.Behaviors.Platform.Cnds.IsFalling,
 		C3.Plugins.Sprite.Cnds.IsOverlapping,
 		C3.Plugins.Keyboard.Cnds.OnAnyKey,
-		C3.Plugins.Text.Acts.SetVisible
+		C3.Plugins.Text.Acts.SetOpacity,
+		C3.Plugins.Text.Acts.SetVisible,
+		C3.Plugins.Sprite.Acts.MoveToBottom,
+		C3.Behaviors.Sin.Acts.SetEnabled
 	];
 };
 self.C3_JsPropNameTable = [
@@ -4751,13 +4997,14 @@ self.C3_JsPropNameTable = [
 	{Slow: 0},
 	{StartX: 0},
 	{StartY: 0},
+	{Punch: 0},
+	{FallDistance: 0},
 	{ScrollTo: 0},
 	{Platform: 0},
 	{MoveTo: 0},
 	{Billy: 0},
 	{Damage: 0},
 	{Bullet: 0},
-	{Punch: 0},
 	{Keyboard: 0},
 	{Enemy1: 0},
 	{Mouse: 0},
@@ -4766,6 +5013,7 @@ self.C3_JsPropNameTable = [
 	{Enemy2: 0},
 	{Enemy1Fast: 0},
 	{Enemy3: 0},
+	{AliveFor: 0},
 	{Enemy4: 0},
 	{Sine: 0},
 	{Light: 0},
@@ -4777,6 +5025,7 @@ self.C3_JsPropNameTable = [
 	{Enemy4SR: 0},
 	{Spawner: 0},
 	{TextBG: 0},
+	{Tween: 0},
 	{Text: 0},
 	{Background: 0},
 	{Camera: 0},
@@ -4787,7 +5036,6 @@ self.C3_JsPropNameTable = [
 	{HealthBar: 0},
 	{HealthBar2: 0},
 	{Heart: 0},
-	{CSV: 0},
 	{ID: 0},
 	{MoveUp: 0},
 	{BAtk: 0},
@@ -4799,6 +5047,17 @@ self.C3_JsPropNameTable = [
 	{Mom: 0},
 	{Title: 0},
 	{Memory: 0},
+	{ChargeBar: 0},
+	{Charge: 0},
+	{Sine2: 0},
+	{Text2: 0},
+	{ChargeParticle: 0},
+	{Aim: 0},
+	{Fade: 0},
+	{Audio: 0},
+	{Ego: 0},
+	{Journal: 0},
+	{Text3: 0},
 	{MaxHealth: 0},
 	{HealthAtStart: 0},
 	{CurrentThree: 0},
@@ -4807,9 +5066,14 @@ self.C3_JsPropNameTable = [
 	{MaxOne: 0},
 	{InDialogue: 0},
 	{t: 0},
+	{waitTime: 0},
+	{XPosition: 0},
+	{timeToFade: 0},
+	{sec: 0},
 	{id: 0},
 	{offset: 0},
-	{Punishment: 0}
+	{Punishment: 0},
+	{MaxPunishment: 0}
 ];
 
 self.InstanceType = {
@@ -4838,14 +5102,23 @@ self.InstanceType = {
 	HealthBar: class extends self.ITiledBackgroundInstance {},
 	HealthBar2: class extends self.ITiledBackgroundInstance {},
 	Heart: class extends self.ISpriteInstance {},
-	CSV: class extends self.IInstance {},
 	BAtk: class extends self.ISpriteInstance {},
 	Boss: class extends self.ISpriteInstance {},
 	SlowBullet: class extends self.ISpriteInstance {},
 	Dad: class extends self.ISpriteInstance {},
 	Mom: class extends self.ISpriteInstance {},
 	Title: class extends self.ISpriteInstance {},
-	Memory: class extends self.ISpriteInstance {}
+	Memory: class extends self.ISpriteInstance {},
+	ChargeBar: class extends self.ITiledBackgroundInstance {},
+	Charge: class extends self.ISpriteInstance {},
+	Text2: class extends self.ITextInstance {},
+	ChargeParticle: class extends self.IParticlesInstance {},
+	Aim: class extends self.ITiledBackgroundInstance {},
+	Fade: class extends self.ISpriteInstance {},
+	Audio: class extends self.IInstance {},
+	Ego: class extends self.ISpriteInstance {},
+	Journal: class extends self.ISpriteInstance {},
+	Text3: class extends self.ITextInstance {}
 }
 }
 
@@ -4946,56 +5219,268 @@ function or(l, r)
 }
 
 self.C3_ExpressionFuncs = [
-		() => "Triggers",
-		() => "Dialogue",
-		() => 4,
-		() => 100,
-		() => "",
-		() => 150,
+		() => 0,
 		p => {
 			const v0 = p._GetNode(0).GetVar();
 			return () => v0.GetValue();
 		},
-		() => 0.5,
-		() => "next",
-		() => "Memories",
-		() => "MemOne",
-		() => 50,
-		() => "MemTwo",
-		() => "MemThree",
-		() => "MemFour",
-		() => "MemFive",
-		() => "MemSix",
-		() => "MemSeven",
-		() => "MemEight",
+		() => 25,
 		p => {
 			const n0 = p._GetNode(0);
 			return () => n0.ExpInstVar();
 		},
+		() => -10,
+		() => "level",
+		() => "Triggers",
+		() => "Dialogue",
+		() => 4,
+		() => 1920,
+		() => 400,
+		() => "",
+		() => "next",
+		() => "Memories",
+		() => "MemOne",
+		() => "Billy: Mom! Look!",
+		() => "Mom: That’s a great painting Billy!",
+		() => "Billy: My art teacher said he really liked it!",
+		() => "Mom: I’m sure he did! Why wouldn’t he? I’m so proud of you!",
+		() => "Billy: Mom, there are these really nice brushes and paint that we use in class. Do you think we could get them?",
+		() => "Mom: Sure! How much are they?",
+		() => "Billy: Here. I found them online.",
+		() => "Mom: That’s…quite expensive…Are you sure something cheaper won’t do?",
+		() => "Billy: No, Mom! It has to be this kind!",
+		() => "Mom: Alright, I’ll talk to your Dad.",
+		() => "Billy: Yay! Thanks Mom!",
+		() => 1,
+		() => 50,
+		() => "MemTwo",
+		() => "Mom: Your Dad is such a selfish control freak!",
+		() => "Mom: So I spent some money on your cousins.",
+		() => "Mom: They’re not as fortunate as us. They deserve nice stuff.",
+		() => "Mom: Maybe you can tell your Dad to be more understanding? He’ll listen to you.",
+		() => "Billy: Ok Mom, I’ll talk to him.",
+		() => "Mom: Alright birthday boy! Have a good day at school!",
+		() => "Billy: Thanks…",
+		() => "Mom: Give me a hug!",
+		() => "Billy: Not here Mom, you’re embarrassing me!",
+		() => "Mom: Alright, but I’m getting one when I get home!",
+		() => "Billy: Fine…Do you think I can start walking to school by myself now?",
+		() => "Mom: Oh…is that what you want?",
+		() => "Billy: Mom, I’m old enough to walk to school now! Besides, I walk home every day all by myself!",
+		() => "Mom: All right, Billy…I’ll respect your wishes.",
+		() => "Billy: Great! Bye!",
+		() => "MemThree",
+		() => "Mom: Welcome back, Mister 'I’m old enough to walk to school now.'",
+		() => "Billy: Mom, it’s not a big deal! None of the other parents walk their kids to school!",
+		() => "Mom: I know Billy, I’m just teasing you.",
+		() => "Billy: Where’s Dad?",
+		() => "Mom: He’s…working today.",
+		() => "Billy: Again? But it’s Tuesday!",
+		() => "Mom: I know sweetie. He’s just trying to make more money.",
+		() => "Billy: Why? We were fine before?",
+		() => "Mom: You know about the sink right? Your Dad wanted to pay a repairman to fix it.",
+		() => "Billy: It was only leaking a little bit. You guys didn’t need to try and fix it.",
+		() => "Mom: I know! We could have fixed it ourselves! He’s so willing to waste money but draws the line at your cousins.",
+		() => "Billy: …I’m gonna be in my room.",
+		() => "Mom: Alright Billy, let me know if you need anything!",
+		() => "MemFour",
+		() => "Mom: Hey Billy, I know your Dad won’t be home to celebrate your birthday, but we can still go out for pizza if you want.",
+		() => "Billy: It’s fine Mom…",
+		() => "Mom: Are you sure? We can go down to that place around the block?",
+		() => "Billy: Mom! Kids at my school hang out there all the time. I don’t want to be the mama’s boy at my school!",
+		() => "Mom: Alright sweetie…how about you and I do some painting?",
+		() => "Billy: I’m not in the mood to paint today…",
+		() => "Mom:…Is everything okay with you? You seem distant lately.",
+		() => "Billy: It’s nothing Mom, don’t worry about it! I’m just…stressed about school…that’s all!",
+		() => "Mom: Okay…Please let me know if you need anything…",
+		() => "MemFive",
+		() => "Billy: Dad?",
+		() => "Dad: Oh hey Billy, you’re still up? Happy birthday!",
+		() => "Billy: You were working again…",
+		() => "Dad: Yeah…Sorry, I missed your birthday. And sorry we couldn’t get you your paint set. I promise we’ll get them soon.",
+		() => "Billy: Dad, I don’t care about some stupid art supply. I wanted to spend my birthday with you and Mom.",
+		() => "Dad: Oh, I’m sorry…I’m probably going to be working on Tuesdays from now on. We could use the money.",
+		() => "Billy: Why? For your reckless spending?",
+		() => "Dad: What are you talking about?",
+		() => "Billy: The sink! You could’ve just left it alone.",
+		() => "Dad: Billy, the thing was unusable!",
+		() => "Billy: It was just a small leak! You didn’t have to fix it!",
+		() => "Dad: It was a small leak until your Mom started tinkering with it!",
+		() => "Billy: Maybe you should have let her figure it out! She fixes things around the house all the time!",
+		() => "Dad: Sure, she can 'fix anything.'",
+		() => "Billy: Yeah…and quite frankly, I believe her more than the father who can’t even spend his son’s birthday with him.",
+		() => "MemSix",
+		() => "Billy: Mom! Dad! I have something I want to show you guys!",
+		() => "Dad: That’s great, but listen. We have…some news…",
+		() => "Billy: What is it?",
+		() => "Dad: Your Mom will be leaving next week to stay at your grandma’s.",
+		() => "Billy: You’re…you’re getting a divorce?",
+		() => "Mom: No! Of course not sweetie…Your grandma is sick. I’m heading there to take care of her.",
+		() => "Billy: Will she be alright?",
+		() => "Mom: I believe so.",
+		() => "Billy: So you’ll come back right?",
+		() => "Mom: Of course!",
+		() => "Billy: When?",
+		() => "Mom: Until she gets better. But nothing is going to change. We’ll keep in touch daily.",
+		() => "Dad: Do you have any other questions?",
+		() => "Billy: No. I’m gonna be in my room now.",
+		() => "Dad: Isn’t there something you wanted to show us?",
+		() => "Billy: …Yeah…but I just realized I forgot to add something to it. Let me fix it first!",
+		() => "Mom: Let us know when you’re done! We’re always excited to see your work!",
+		() => "Walking",
+		() => "Idle",
+		() => 100,
 		() => "Signals",
 		() => "DiaOne",
-		() => "Dad: Hey Billy.",
+		() => 3,
+		() => 3.5,
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() - 1120);
+		},
+		() => "Dad: Hey Billy. <Space>",
+		() => 2,
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() + 640);
+		},
 		() => "Billy: Hi Dad. What’s up?",
 		() => "Dad: Happy 18th birthday!",
 		() => "Billy: Thanks.",
 		() => "Dad: I have something for you.",
+		() => 0.5,
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() - 160);
+		},
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() + 160);
+		},
 		() => "Billy: A pocket watch? What am I supposed to do with it?",
+		() => "Dad: It’s my family memorabilia, passed down to me from your grandfather.",
+		() => "Billy: What’s so special about it?",
+		() => "Dad: Well…it’s not so much about what it can do, more so what it represents. It reminds us to look back on our past, the good and bad memories, and learn from them. At the same time, it’s important not to get stuck there. The past’s already happened, you can’t change it.",
+		() => "Billy: Wow Dad. You make me want to vomit with your cliche crap.",
+		() => "Dad: Alright…fair. But keep the watch. Your grandfather said it helped him reflect whenever he felt troubled. Maybe it’ll help you out someday.",
+		() => "Billy: How?! Dad, I don’t want to think about my past!",
+		() => "Dad: What do you mean?",
+		() => "Billy: I mean…it’s nothing…thanks, I guess…",
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() - 640);
+		},
+		() => "Dad: Are you sure it’s nothing?",
+		() => "Billy: Yes! Can you leave me alone now?",
+		() => "Dad: …okay…",
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() + 960);
+		},
 		() => "DiaTwo",
+		() => "Dad: Why do you keep spending money on all this stuff we don’t need!?",
+		() => "Because I bought it for my family!",
+		() => "Dad: Really? Because there are still clothes in this house that you said were 'for your family.'",
+		() => "Mom: I will mail them eventually. You know they don’t make a lot of money. I just think its important to give back…",
+		() => "Dad: Listen…I know they’re important to you, but what about *this* family?",
+		() => "Mom: Are you saying you don’t care about your distant family?",
+		() => "Dad: Of course I do! You do realize that I also pay the rent, the car, the phone and water bill, and everything else!",
+		() => "Mom: Fine! I’ll be more careful with my spending!",
+		() => "Dad: Oh thanks a lot! That’ll really help!",
+		() => "Mom: Well, what else do you want me to do? Just say it!",
+		() => "Dad: Billy’s birthday is coming up soon. I don’t think we’ll have enough to get him that paint set he really wanted.",
+		() => "Mom: Billy’s a patient kid. He’ll understand we’re tight on money.",
+		() => "Dad: He asked for them months ago! He may be patient, but he’s still a kid!",
+		() => "Mom: I know…",
+		() => "Dad: Look, I’ll start taking shifts at the restaurant on Tuesdays.",
+		() => "Mom: But his birthday’s on a Tuesday? You’ll miss it.",
+		() => "Dad: I don’t want to talk about this anymore. Billy’s gonna be home soon. Let’s not try and start things.",
 		() => "DiaThree",
+		() => 1.5,
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() + 480);
+		},
+		() => "Mom: Billy! Come spend time with me!",
+		() => "Billy: …No thanks, Mom…",
+		() => "Mom: Are you sure? Don’t you want to paint together?",
+		() => "Billy: No, Mom! I don’t want to do anything with you!",
+		() => "Mom: Hey! You do not use that tone with me!",
+		() => "Billy: I don’t care! You’re selfish! You care more about your distant family than us. Maybe you should just go live with them already!",
+		() => "Mom: Is that how you really feel?",
+		() => "Billy: I do! Dad works nonstop for us and all you do is complain about him! You’re…a monster…",
+		() => "Mom: If that’s how you see me, then fine…I guess I am…a monster…",
+		() => "js",
 		() => "DiaFour",
+		() => "Billy: …",
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() + 2560);
+		},
+		() => "Billy: Wait! Mom! No! Wait!",
 		() => "DiaFive",
+		() => "Billy: Dad! I’m so sorry! It’s my fault!",
+		() => "Dad: What is?",
+		() => "Billy: I’m the reason you guys were fighting! I’m the reason Mom left and never came back!",
+		() => "Dad: …",
+		() => "Billy: I should have been there for her instead of pushing her away! I should have understood why you had to work late every night. I could have prevented the divorce! But…instead…all I could think about is myself…I’m sorry…",
+		() => "Dad: You should be…",
+		() => "Billy: I—wha—",
+		() => "Dad: What? Were you hoping they would be sympathetic?",
+		() => "Billy: …Dad?",
+		() => "Ego",
+		() => "Ego: Well hello there!",
+		() => "Billy: What do you want?",
+		() => "Ego: Just keeping you safe.",
+		() => "Billy: How?!",
+		() => "Ego: You really think your parents would accept your pitiful attempt in making amends? After what you did?",
+		() => "Billy: I know they’re good people…they’ll understand.",
+		() => "Ego: But you don’t have anything to back that up, do you? Think about it. Every good memory you have with them exists because they chose to hide their contempt from you. Things would be so much better if you didn’t exist…",
+		() => "Billy: Stop! That’s not true…",
+		() => "Ego: But it is! They were only together because of you! You made their life miserable!",
+		() => "Billy: …no…",
+		() => "Ego: But don’t worry! My friends and I are here to prevent you from causing any more damage.",
+		() => "Billy: Get out of my head!",
+		() => "Ego: No. You need to be scared! You need to be embarrassed! You need to understand that all you can do is make things worse!",
+		() => "Billy: Please…leave me alone!",
+		() => "Ego: Don’t think of us as your enemies. After all, all we want is to protect you…",
 		() => "DiaSix",
-		() => 1,
-		() => 0,
-		() => 2,
-		() => 3,
-		() => 5,
-		() => 6,
-		() => 7,
+		() => "Dad: Billy!",
+		() => "Billy: What is—Did you read my letter?",
+		() => "Dad: Um…yeah…",
+		() => "Dad: Billy, you don’t have to apologize for anything. Our divorce is not your fault!",
+		() => "Billy: I know…But I still regret the things I said to you and Mom…I’m sorry…",
+		() => "Dad: Don’t worry about it. I’m sure you’re not the only teenager who hates spending time with their parents. I’m sorry you heard all the fights. And for getting you involved in the first place.",
+		() => "Dad: Is this the painting?",
+		() => "Billy: Yeah…",
+		() => "Dad: Why did you decide to hang it up now?",
+		() => "Billy: I don’t know…I guess I had a fight with my inner demons and finally won. They prevented me from seeing how happy we all were during that hike.",
+		() => "Dad: Maybe you were…I remember I had to carry you on my back the entire time…",
+		() => "Billy: I know! It was great!",
+		() => "Dad: Do you want to visit that trail again? Maybe if the cell service is good, we can call your Mom.",
+		() => "Billy: Sure Dad. Sounds fun.",
+		() => "end",
+		() => 20,
+		() => "DiaSeven",
+		() => "Billy: Dad! That’s private!",
+		() => "Dad: Billy, if you want to talk—",
+		() => "Billy: How about you leave me alone for once!",
+		() => "Dad: Billy…",
+		() => "Billy: What do you want me to say? I’m fine, Dad! Leave me alone!",
+		() => "Dad: Alright buddy…but know I’m here for you…",
+		() => "Billy: Whatever…",
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() + 1120);
+		},
+		() => 320,
 		p => {
 			const n0 = p._GetNode(0);
 			return () => n0.ExpObject();
 		},
+		() => 5,
+		() => 6,
+		() => 7,
 		p => {
 			const n0 = p._GetNode(0);
 			const n1 = p._GetNode(1);
@@ -5025,37 +5510,44 @@ self.C3_ExpressionFuncs = [
 		() => 2880,
 		() => 1200,
 		() => 960,
-		() => 1920,
-		() => 8,
 		p => {
 			const f0 = p._GetNode(0).GetBoundMethod();
 			const f1 = p._GetNode(1).GetBoundMethod();
 			return () => f0(f1(1, 6));
 		},
-		() => 16,
+		() => 8,
 		p => {
 			const f0 = p._GetNode(0).GetBoundMethod();
 			const f1 = p._GetNode(1).GetBoundMethod();
 			return () => f0(f1(0, 8));
 		},
-		() => 18,
-		() => 15,
 		() => 9,
+		() => 15,
 		() => 10,
-		() => 20,
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpInstVar() * 0.75);
+		},
 		() => "SetColor",
 		() => 0.1,
 		() => 300,
 		() => 200,
 		() => "PlayerControls",
 		p => {
-			const n0 = p._GetNode(0);
-			const n1 = p._GetNode(1);
-			return () => (n0.ExpObject() + (100 * n1.ExpInstVar()));
+			const f0 = p._GetNode(0).GetBoundMethod();
+			const f1 = p._GetNode(1).GetBoundMethod();
+			const n2 = p._GetNode(2);
+			return () => f0(f1((n2.ExpInstVar() / 4)), 1800);
 		},
 		p => {
-			const n0 = p._GetNode(0);
-			return () => (n0.ExpObject() + 20);
+			const f0 = p._GetNode(0).GetBoundMethod();
+			return () => f0();
+		},
+		() => "Punch",
+		p => {
+			const f0 = p._GetNode(0).GetBoundMethod();
+			const n1 = p._GetNode(1);
+			return () => f0((n1.ExpInstVar() / 6), 20);
 		},
 		p => {
 			const n0 = p._GetNode(0);
@@ -5067,17 +5559,35 @@ self.C3_ExpressionFuncs = [
 		() => 10000,
 		p => {
 			const f0 = p._GetNode(0).GetBoundMethod();
-			const n1 = p._GetNode(1);
-			return () => f0(1, (n1.ExpInstVar() / 60));
+			const f1 = p._GetNode(1).GetBoundMethod();
+			const n2 = p._GetNode(2);
+			return () => f0(f1(1, (n2.ExpInstVar() / 60)), 0.25);
+		},
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() + 20);
 		},
 		() => 5000,
 		() => -1,
+		() => "Jump",
+		() => "Fall",
 		() => "PlayerInteraction",
+		() => 1280,
+		() => 90,
+		() => 80,
 		() => 125,
-		() => 1970,
-		() => 2000,
-		() => 140,
-		() => 2020,
+		() => 2010,
+		() => 150,
+		() => 2060,
+		() => 3690,
+		() => 2035,
+		() => 160,
+		() => -717750023016447,
+		p => {
+			const v0 = p._GetNode(0).GetVar();
+			const v1 = p._GetNode(1).GetVar();
+			return () => ((v0.GetValue() - v1.GetValue()) / 2);
+		},
 		p => {
 			const n0 = p._GetNode(0);
 			const n1 = p._GetNode(1);
@@ -5086,12 +5596,17 @@ self.C3_ExpressionFuncs = [
 		p => {
 			const f0 = p._GetNode(0).GetBoundMethod();
 			const n1 = p._GetNode(1);
-			return () => f0(120, (n1.ExpInstVar() + 1));
+			return () => f0(120, (n1.ExpInstVar() + 0.5));
 		},
 		p => {
 			const v0 = p._GetNode(0).GetVar();
 			const v1 = p._GetNode(1).GetVar();
 			return () => (3540 * (v0.GetValue() / v1.GetValue()));
+		},
+		p => {
+			const f0 = p._GetNode(0).GetBoundMethod();
+			const n1 = p._GetNode(1);
+			return () => (3540 * f0((n1.ExpInstVar() / 120), 0));
 		},
 		p => {
 			const v0 = p._GetNode(0).GetVar();
@@ -5111,8 +5626,6 @@ self.C3_ExpressionFuncs = [
 			return () => (v0.GetValue() * 0.2);
 		},
 		() => 60,
-		() => 80,
-		() => 25,
 		() => 120,
 		() => 500,
 		p => {
@@ -5123,9 +5636,18 @@ self.C3_ExpressionFuncs = [
 			const n0 = p._GetNode(0);
 			return () => (n0.ExpObject() - 3000);
 		},
-		() => 1280,
 		() => 1000,
 		() => 2200,
+		() => 240,
+		p => {
+			const n0 = p._GetNode(0);
+			const n1 = p._GetNode(1);
+			return () => (n0.ExpObject() + (320 * n1.ExpInstVar()));
+		},
+		p => {
+			const n0 = p._GetNode(0);
+			return () => (n0.ExpObject() - 320);
+		},
 		() => "EnemySpawnMechanic",
 		p => {
 			const n0 = p._GetNode(0);
@@ -5144,11 +5666,6 @@ self.C3_ExpressionFuncs = [
 			const f0 = p._GetNode(0).GetBoundMethod();
 			const n1 = p._GetNode(1);
 			return () => f0(480, (n1.ExpObject() - 960));
-		},
-		() => 90,
-		p => {
-			const n0 = p._GetNode(0);
-			return () => (n0.ExpObject() - 160);
 		},
 		() => "EnemyInteraction",
 		p => {
@@ -5171,7 +5688,6 @@ self.C3_ExpressionFuncs = [
 		() => 3750,
 		() => 2320,
 		() => 8060,
-		() => 2060,
 		() => 700,
 		() => 4100,
 		() => 6160,
@@ -5186,7 +5702,20 @@ self.C3_ExpressionFuncs = [
 		() => 10240,
 		() => 12,
 		() => 9200,
-		() => 1660
+		() => 1660,
+		() => -20,
+		() => 1420,
+		() => 830,
+		() => -50,
+		() => "done",
+		p => {
+			const n0 = p._GetNode(0);
+			const v1 = p._GetNode(1).GetVar();
+			return () => (n0.ExpObject() + (2960 * (1 / v1.GetValue())));
+		},
+		() => "Journal 4",
+		() => "Journal 5",
+		() => "Scene 1"
 ];
 
 
